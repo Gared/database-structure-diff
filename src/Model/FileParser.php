@@ -54,7 +54,7 @@ class FileParser
         $data = preg_replace('/(`.*`)\.(`.*`)/i', '$2', $data);
 
         $this->sqlParser = new SQLParser();
-        $this->sqlParser->parse($data);c
+        $this->sqlParser->parse($data);
     }
 
     /**

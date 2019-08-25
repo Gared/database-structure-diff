@@ -241,6 +241,7 @@ class DatabaseDiffCommand extends Command
         }
 
         $conn = DriverManager::getConnection($connection->getConfig(), new Configuration());
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
         $sm = $conn->getSchemaManager();
         return $sm->createSchema();
     }
