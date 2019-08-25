@@ -31,7 +31,8 @@ class DatabaseDiffCommand extends Command
             ->setName('database:calculate-diff')
             ->setDescription('Calculates the diff between to database schemes')
             ->addArgument('config', InputArgument::REQUIRED, 'Configuration file where to load schemes from')
-            ->addOption('output-file', 'o', InputOption::VALUE_OPTIONAL, 'Define output file to store migration script');
+            ->addOption('output-file', 'o', InputOption::VALUE_OPTIONAL, 'Define output file to store migration script')
+            ->addOption('ignore-table', null, InputOption::VALUE_OPTIONAL, 'Regex to ignore table names');
     }
 
     /**
@@ -50,6 +51,11 @@ class DatabaseDiffCommand extends Command
             $platform = $this->getDatabasePlatform($group);
             $fromSchema = $this->getSchemaFromConnection($group->getFromConnection(), $platform);
             $toSchema = $this->getSchemaFromConnection($group->getToConnection(), $platform);
+
+            if ($input->getOption('ignore-table')) {
+                $this->ignoreTables($fromSchema, $input->getOption('ignore-table'));
+                $this->ignoreTables($toSchema, $input->getOption('ignore-table'));
+            }
 
             $schemaDiff = $this->diffSchema($fromSchema, $toSchema);
 
@@ -256,5 +262,18 @@ class DatabaseDiffCommand extends Command
         $comparator = new Comparator();
         $schemaDiff = $comparator->compare($fromSchema, $toSchema);
         return $schemaDiff;
+    }
+
+    /**
+     * @param Schema $schema
+     * @param string $ignoreTable
+     */
+    private function ignoreTables(Schema $schema, string $ignoreTable)
+    {
+        foreach ($schema->getTableNames() as $tableName) {
+            if (preg_match('/' . $ignoreTable . '/i', $tableName)) {
+                $schema->dropTable($tableName);
+            }
+        }
     }
 }
