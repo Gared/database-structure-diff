@@ -64,6 +64,7 @@ class DatabaseDiffCommand extends Command
                 $data .= implode(';' . PHP_EOL, $schemaDiff->toSql($platform));
                 file_put_contents($input->getOption('output-file'), $data, FILE_APPEND);
             } else {
+                $io->section($group->getFromConnection()->getDescription() . ' => ' . $group->getToConnection()->getDescription());
                 $this->outputSchemaDiff($io, $schemaDiff);
             }
         }
