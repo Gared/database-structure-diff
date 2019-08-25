@@ -71,12 +71,13 @@ class FileParser
             foreach ($table['fields'] as $field) {
                 $column = $test->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($field['type']));
                 if ($column->getType() instanceof StringType) {
-                    $column->setLength($field['length']);
+                    $column->setLength($field['length'] ?? null);
                     $column->setFixed(stripos($field['type'], 'VAR') === false);
                 }
                 $column->setNotnull($field['null'] !== true);
                 $column->setScale(0);
                 $column->setAutoincrement($field['auto_increment'] ?? false);
+                $column->setUnsigned($field['unsigned'] ?? false);
                 if (isset($field['default'])) {
                     $column->setDefault($field['default'] !== 'NULL' ? $field['default'] : null);
                 }
