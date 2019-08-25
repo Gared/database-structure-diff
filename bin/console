@@ -1,0 +1,12 @@
+<?php
+
+use DatabaseDiffer\Command\DatabaseDiffCommand;
+use Symfony\Component\Console\Application;
+
+require 'vendor/autoload.php';
+
+$application = new Application();
+
+$application->add(new DatabaseDiffCommand());
+
+$application->run();

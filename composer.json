@@ -1,0 +1,22 @@
+{
+    "name": "gared/database-structure-diff",
+    "description": "Show database structure diffs between databases and sql structure dump",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stefan Müller",
+            "email": "mu.stefan@googlemail.com",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "DatabaseDiffer\\": "src/"
+        }
+    },
+    "require": {
+        "doctrine/orm": "^2.0",
+        "symfony/console": "~3.0|~4.0",
+        "iamcal/sql-parser": "*"
+    }
+}
