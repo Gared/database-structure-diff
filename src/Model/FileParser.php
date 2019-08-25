@@ -69,10 +69,11 @@ class FileParser
         foreach ($this->sqlParser->tables as $tableName => $table) {
             $test = $this->schema->createTable($tableName);
             foreach ($table['fields'] as $field) {
-                $column = $test->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($field['type']));
+                $fieldType = strtolower($field['type']);
+                $column = $test->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($fieldType));
                 if ($column->getType() instanceof StringType) {
                     $column->setLength($field['length'] ?? null);
-                    $column->setFixed(stripos($field['type'], 'VAR') === false);
+                    $column->setFixed($fieldType === 'enum' || stripos($field['type'], 'VAR') === false);
                 }
                 $column->setNotnull($field['null'] !== true);
                 $column->setScale(0);
