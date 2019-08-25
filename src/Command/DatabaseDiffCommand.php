@@ -126,7 +126,7 @@ class DatabaseDiffCommand extends Command
 
                         $list = [];
                         foreach ($changedColumn->changedProperties as $property) {
-                            $list[] = $property . ': ' . $fromColumnArray[$property] . ' => ' . $toColumnArray[$property];
+                            $list[] = $property . ': ' . $this->getPropertyValue($fromColumnArray[$property]) . ' => ' . $this->getPropertyValue($toColumnArray[$property]);
                         }
                         $io->listing($list);
                     }
@@ -214,6 +214,20 @@ class DatabaseDiffCommand extends Command
                 }
             }
         }
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    private function getPropertyValue($value): string
+    {
+        if ($value === true) {
+            return 'true';
+        } else if ($value === false) {
+            return 'false';
+        }
+        return $value;
     }
 
     /**
