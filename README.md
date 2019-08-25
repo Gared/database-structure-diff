@@ -102,6 +102,51 @@ or use the option "output-file" to store an ALTER script to a file
 php bin/console database:calculate-diff config.php --output-file alter.sql
 ```
 
+### Example output
+
+```shell script
+Database: example@10.10.1.1 => File: strcture.sql
+-------------------------------------------------
+
+New tables
+==========
+
+ * user: user_id, name
+
+Removed tables
+==============
+
+ * player
+
+Changed tables
+==============
+
+team
+----
+
+Added columns
+ * team_short_name: String 10
+
+Changed columns
+path
+ * length: 100 => 255
+
+Removed columns
+ * user_id
+
+Removed indexes
+ * FK_team_user
+
+Added foreign keys
+ * FK_C4E0A61F3A35FDA4: (team_type_id) => team_type (team_type_id)
+
+group
+-----
+
+Renamed indexes
+ * fk_group => fk_group_idx
+```
+
 ## Supported Platforms
 
 * Doctrine supported databases (MySQL, MariaDB, Oracle, etc.)
