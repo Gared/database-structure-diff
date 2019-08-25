@@ -76,7 +76,11 @@ class FileParser
                 $column = $test->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($fieldType));
                 if ($column->getType() instanceof StringType) {
                     $column->setLength($field['length'] ?? null);
-                    $column->setFixed($fieldType !== 'enum' || stripos($field['type'], 'VAR') === false);
+                    if ($fieldType === 'enum') {
+                        $column->setFixed(false);
+                    } else {
+                        $column->setFixed(stripos($field['type'], 'VAR') === false);
+                    }
                 }
                 $column->setNotnull($field['null'] !== true);
                 $column->setScale(0);
