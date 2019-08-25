@@ -6,6 +6,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaConfig;
 use Doctrine\DBAL\Types\StringType;
+use Exception;
 use iamcal\SQLParser;
 
 class FileParser
@@ -53,8 +54,14 @@ class FileParser
     {
         $data = file_get_contents($this->filePath);
 
-        $data = preg_replace('/CREATE TABLE( IF NOT EXISTS)? ((?!`' . $databaseName . '`)[^;])+\.`[^;]+`[^;]+;/si', '', $data);
+        $data = preg_replace('/CREATE TABLE( IF NOT EXISTS)? `(?!' . $databaseName . ')[^;]+;/si', '', $data);
+        if (preg_last_error() !== PREG_NO_ERROR) {
+            throw new Exception('Failed to read sql (propably too big)');
+        }
         $data = preg_replace('/(`.*`)\.(`.*`)/i', '$2', $data);
+        if (preg_last_error() !== PREG_NO_ERROR) {
+            throw new Exception('Failed to read sql (propably too big)');
+        }
 
         $this->sqlParser = new SQLParser();
         $this->sqlParser->parse($data);
