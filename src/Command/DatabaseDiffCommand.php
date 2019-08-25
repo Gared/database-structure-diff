@@ -227,7 +227,7 @@ class DatabaseDiffCommand extends Command
         } else if ($value === false) {
             return 'false';
         }
-        return $value;
+        return (string)$value;
     }
 
     /**
