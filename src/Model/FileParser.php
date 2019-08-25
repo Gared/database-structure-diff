@@ -5,6 +5,7 @@ namespace DatabaseDiffer\Model;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaConfig;
+use Doctrine\DBAL\Types\DecimalType;
 use Doctrine\DBAL\Types\StringType;
 use Exception;
 use iamcal\SQLParser;
@@ -88,9 +89,11 @@ class FileParser
                     } else {
                         $column->setFixed(stripos($field['type'], 'VAR') === false);
                     }
+                } else if ($column->getType() instanceof DecimalType) {
+                    $column->setPrecision($field['length'] ?? null);
+                    $column->setScale($field['decimals'] ?? null);
                 }
                 $column->setNotnull($field['null'] !== true);
-                $column->setScale(0);
                 $column->setAutoincrement($field['auto_increment'] ?? false);
                 $column->setUnsigned($field['unsigned'] ?? false);
                 if (isset($field['default'])) {
