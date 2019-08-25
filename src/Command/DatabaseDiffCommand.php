@@ -258,7 +258,8 @@ class DatabaseDiffCommand extends Command
     {
         if ($connection->isFile()) {
             $path = $connection->getConfig()['path'];
-            $parser = new FileParser($path, $platform);
+            $databaseName = $connection->getConfig()['dbname'];
+            $parser = new FileParser($path, $databaseName, $platform);
             return $parser->getSchema();
         }
 

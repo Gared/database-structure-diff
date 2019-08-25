@@ -33,24 +33,27 @@ class FileParser
     /**
      * FileParser constructor.
      * @param string $filePath
+     * @param string $databaseName
      * @param AbstractPlatform $platform
      */
-    public function __construct(string $filePath, AbstractPlatform $platform)
+    public function __construct(string $filePath, string $databaseName, AbstractPlatform $platform)
     {
         $this->filePath = $filePath;
         $this->platform = $platform;
 
-        $this->loadStructureDefinition();
+        $this->loadStructureDefinition($databaseName);
         $this->convertToStructure();
     }
 
     /**
      * Load definition of database structure from sql file
+     * @param string $databaseName
      */
-    private function loadStructureDefinition()
+    private function loadStructureDefinition(string $databaseName)
     {
         $data = file_get_contents($this->filePath);
 
+        $data = preg_replace('/CREATE TABLE( IF NOT EXISTS)? ((?!`' . $databaseName . '`)[^;])+\.`[^;]+`[^;]+;/si', '', $data);
         $data = preg_replace('/(`.*`)\.(`.*`)/i', '$2', $data);
 
         $this->sqlParser = new SQLParser();
@@ -73,7 +76,7 @@ class FileParser
                 $column = $test->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($fieldType));
                 if ($column->getType() instanceof StringType) {
                     $column->setLength($field['length'] ?? null);
-                    $column->setFixed($fieldType === 'enum' || stripos($field['type'], 'VAR') === false);
+                    $column->setFixed($fieldType !== 'enum' || stripos($field['type'], 'VAR') === false);
                 }
                 $column->setNotnull($field['null'] !== true);
                 $column->setScale(0);
