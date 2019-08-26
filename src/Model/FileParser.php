@@ -78,10 +78,10 @@ class FileParser
         $this->schema = new Schema([], [], $schemaConfig);
 
         foreach ($this->sqlParser->tables as $tableName => $table) {
-            $test = $this->schema->createTable($tableName);
+            $schemaTable = $this->schema->createTable($tableName);
             foreach ($table['fields'] as $field) {
                 $fieldType = strtolower($field['type']);
-                $column = $test->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($fieldType));
+                $column = $schemaTable->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($fieldType));
                 if ($column->getType() instanceof StringType) {
                     $column->setLength($field['length'] ?? null);
                     if ($fieldType === 'enum') {
@@ -109,16 +109,18 @@ class FileParser
                 }
 
                 if ($index['type'] === 'PRIMARY') {
-                    $test->setPrimaryKey($columnNames);
+                    $schemaTable->setPrimaryKey($columnNames);
 
                 } else if ($index['type'] === 'FOREIGN') {
                     $refColumnNames = [];
                     foreach ($index['ref_cols'] as $col) {
                         $refColumnNames[] = $col['name'];
                     }
-                    $test->addForeignKeyConstraint($index['ref_table'], $columnNames, $refColumnNames);
+                    $schemaTable->addForeignKeyConstraint($index['ref_table'], $columnNames, $refColumnNames);
                 } else if ($index['type'] === 'INDEX') {
-                    $test->addIndex($columnNames, $index['name'] ?? null);
+                    $schemaTable->addIndex($columnNames, $index['name'] ?? null);
+                } else if ($index['type'] === 'UNIQUE') {
+                    $schemaTable->addUniqueIndex($columnNames, $index['name'] ?? null);
                 }
             }
         }
