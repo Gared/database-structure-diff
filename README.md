@@ -7,7 +7,7 @@ You can also make a diff between a sql schema dump and a database.
 
 Use composer
 ```shell script
-composer install gared/database-structure-diff
+composer require gared/database-structure-diff
 ```
 
 or clone this repository
