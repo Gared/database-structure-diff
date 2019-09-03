@@ -3,7 +3,7 @@
 use DatabaseDiffer\Command\DatabaseDiffCommand;
 use Symfony\Component\Console\Application;
 
-require 'vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 $application = new Application();
 
