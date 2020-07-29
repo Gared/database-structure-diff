@@ -4,6 +4,7 @@ namespace DatabaseDiffer\Tests\Model;
 
 use DatabaseDiffer\Model\FileParser;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
+use Doctrine\DBAL\Types\DecimalType;
 use Doctrine\DBAL\Types\IntegerType;
 use Doctrine\DBAL\Types\StringType;
 use PHPUnit\Framework\TestCase;
@@ -30,9 +31,21 @@ class FileParserTest extends TestCase
         $this->assertSame(false, $loginNameColumn->getAutoincrement());
         $this->assertSame('name for login', $loginNameColumn->getComment());
         $this->assertSame(true, $loginNameColumn->getNotnull());
-        $this->assertSame('utf8mb4', $loginNameColumn->getCustomSchemaOption('CHARACTER SET'));
+//        $this->assertSame('utf8mb4', $loginNameColumn->getCustomSchemaOption('CHARACTER SET'));
         $this->assertSame(50, $loginNameColumn->getLength());
         $this->assertSame(null, $loginNameColumn->getDefault());
         $this->assertInstanceOf(StringType::class, $loginNameColumn->getType());
+
+
+        $clubTable = $parser->getSchema()->getTable('testdb.club');
+        $this->assertSame('club', $clubTable->getName());
+        $this->assertCount(2, $clubTable->getColumns());
+
+        $ratingColumn = $clubTable->getColumn('rating');
+        $this->assertSame(false, $ratingColumn->getAutoincrement());
+        $this->assertSame(null, $ratingColumn->getComment());
+        $this->assertInstanceOf(DecimalType::class, $ratingColumn->getType());
+        $this->assertSame(1, $ratingColumn->getScale());
+        $this->assertSame(2, $ratingColumn->getPrecision());
     }
 }

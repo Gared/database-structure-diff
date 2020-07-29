@@ -119,13 +119,21 @@ class FileParser
             }
         } else if ($column->getType() instanceof DecimalType) {
             $column->setPrecision($field->type->parameters[0] ?? null);
-            $column->setScale($field['decimals'] ?? null);
+            $column->setScale($field->type->parameters[1] ?? null);
         }
 
         foreach ($field->type->options->options as $option) {
-            switch ($option['name']) {
-                case 'CHARACTER SET':
+            if (is_array($option)) {
+                switch ($option['name']) {
+                    case 'CHARACTER SET':
 //                    $column->setCustomSchemaOption($option['name'], $option['value']);
+                        break;
+                }
+            }
+
+            switch ($option) {
+                case 'UNSIGNED':
+                    $column->setUnsigned(true);
                     break;
             }
         }

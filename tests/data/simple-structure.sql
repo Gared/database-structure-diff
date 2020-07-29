@@ -25,5 +25,7 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
   PRIMARY KEY (`user_id`));
 
 create table testdb.club (
-  club_id INT
+  club_id INT,
+  /*point POINT,*/
+  rating DECIMAL(2,1) UNSIGNED NULL,
 )
