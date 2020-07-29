@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
   `user_hash_value` CHAR(64) CHARACTER SET 'utf8mb4' NOT NULL,
   `is_verified` TINYINT NOT NULL DEFAULT '0',
   UNIQUE KEY `unique_email` (`email`),
-  INDEX `index_verified` (`is_verified` ASC),
+  INDEX `index_verified_end_date` (`is_verified` ASC, `end_date` ASC),
   CONSTRAINT `fk_club`
     FOREIGN KEY (`user_id`)
     REFERENCES `testdb`.`club` (`club_id`)

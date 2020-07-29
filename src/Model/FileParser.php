@@ -58,9 +58,15 @@ class FileParser
     {
         $data = file_get_contents($this->filePath);
 
-        $data = preg_replace('/(INDEX.*) (ASC|DESC)\),/i', '$1),', $data);
+        $data = preg_replace_callback(
+            '/(INDEX .*)\(((,?\s*\S+ (ASC|DESC))+)\),/',
+            function ($match) {
+                return $match[1] . '(' . str_replace('ASC', '', $match[2]) . ')';
+            },
+            $data
+        );
         if (preg_last_error() !== PREG_NO_ERROR) {
-            throw new Exception('Failed to read sql (propably too big)');
+            throw new Exception('Failed to read sql (probably too big)');
         }
 
         $this->sqlParser = new Parser($data);
