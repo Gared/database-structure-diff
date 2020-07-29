@@ -279,8 +279,7 @@ class DatabaseDiffCommand extends Command
     private function diffSchema(Schema $fromSchema, Schema $toSchema): SchemaDiff
     {
         $comparator = new Comparator();
-        $schemaDiff = $comparator->compare($fromSchema, $toSchema);
-        return $schemaDiff;
+        return $comparator->compare($fromSchema, $toSchema);
     }
 
     /**
