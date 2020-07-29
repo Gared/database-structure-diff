@@ -14,7 +14,7 @@ or clone this repository
 
 ```shell script
 git clone https://github.com/gared/database-structure-diff.git
-composer install
+composer install --no-dev
 ```
 
 ## Configuration
