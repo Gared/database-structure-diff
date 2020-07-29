@@ -28,4 +28,5 @@ create table testdb.club (
   club_id INT,
   /*point POINT,*/
   rating DECIMAL(2,1) UNSIGNED NULL,
+  category VARCHAR(40) NOT NULL DEFAULT 'test'
 )

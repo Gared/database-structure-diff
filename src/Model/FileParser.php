@@ -59,7 +59,7 @@ class FileParser
         $data = file_get_contents($this->filePath);
 
         $data = preg_replace_callback(
-            '/(INDEX .*)\(((,?\s*\S+ (ASC|DESC))+)\),/',
+            '/(INDEX .*)\(((,?\s*\S+ (ASC|DESC))+)\)/',
             function ($match) {
                 return $match[1] . '(' . str_replace('ASC', '', $match[2]) . ')';
             },
@@ -156,6 +156,10 @@ class FileParser
                             $convertedDefault = null;
                         } else if (is_int($default)) {
                             $convertedDefault = (int)$default;
+                        } else if (is_string($default)) {
+                            $default = str_replace('"', "", $default);
+                            $default = str_replace("'", "", $default);
+                            $convertedDefault = $default;
                         } else {
                             $convertedDefault = $default;
                         }

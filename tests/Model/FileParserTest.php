@@ -39,7 +39,7 @@ class FileParserTest extends TestCase
 
         $clubTable = $parser->getSchema()->getTable('testdb.club');
         $this->assertSame('club', $clubTable->getName());
-        $this->assertCount(2, $clubTable->getColumns());
+        $this->assertCount(3, $clubTable->getColumns());
 
         $ratingColumn = $clubTable->getColumn('rating');
         $this->assertSame(false, $ratingColumn->getAutoincrement());
@@ -47,5 +47,8 @@ class FileParserTest extends TestCase
         $this->assertInstanceOf(DecimalType::class, $ratingColumn->getType());
         $this->assertSame(1, $ratingColumn->getScale());
         $this->assertSame(2, $ratingColumn->getPrecision());
+
+        $categoryColumn = $clubTable->getColumn('category');
+        $this->assertSame('test', $categoryColumn->getDefault());
     }
 }
