@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7d0201d389aaa31adcd030631b38dce6",
+    "content-hash": "9b6c205954f5e2052cfe4ba39b2986bd",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -879,41 +879,74 @@
             "time": "2018-06-14T14:45:07+00:00"
         },
         {
-            "name": "iamcal/sql-parser",
-            "version": "v0.2",
+            "name": "phpmyadmin/sql-parser",
+            "version": "5.3.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/iamcal/SQLParser.git",
-                "reference": "dcb614bae8151ed9db79f56cb2cf369b9749f21b"
+                "url": "https://github.com/phpmyadmin/sql-parser.git",
+                "reference": "11457e9bbedc182b48c04db3a2621d17b58b0808"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/iamcal/SQLParser/zipball/dcb614bae8151ed9db79f56cb2cf369b9749f21b",
-                "reference": "dcb614bae8151ed9db79f56cb2cf369b9749f21b",
+                "url": "https://api.github.com/repos/phpmyadmin/sql-parser/zipball/11457e9bbedc182b48c04db3a2621d17b58b0808",
+                "reference": "11457e9bbedc182b48c04db3a2621d17b58b0808",
                 "shasum": ""
             },
-            "require-dev": {
-                "php-coveralls/php-coveralls": "~1.0",
-                "phpunit/phpunit": ">=4.8"
+            "require": {
+                "php": "^7.1",
+                "symfony/polyfill-mbstring": "^1.3"
             },
+            "conflict": {
+                "phpmyadmin/motranslator": "<3.0"
+            },
+            "require-dev": {
+                "phpmyadmin/coding-standard": "^1.0",
+                "phpmyadmin/motranslator": "^4.0 || ^5.0",
+                "phpstan/extension-installer": "^1.0",
+                "phpstan/phpstan": "^0.12.3",
+                "phpstan/phpstan-phpunit": "^0.12.1",
+                "phpunit/php-code-coverage": "*",
+                "phpunit/phpunit": "^7.4 || ^8 || ^9"
+            },
+            "suggest": {
+                "ext-mbstring": "For best performance",
+                "phpmyadmin/motranslator": "Translate messages to your favorite locale"
+            },
+            "bin": [
+                "bin/highlight-query",
+                "bin/lint-query",
+                "bin/tokenize-query"
+            ],
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "iamcal\\": "src"
+                    "PhpMyAdmin\\SqlParser\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "MIT"
+                "GPL-2.0-or-later"
             ],
             "authors": [
                 {
-                    "name": "Cal Henderson",
-                    "email": "cal@iamcal.com"
+                    "name": "The phpMyAdmin Team",
+                    "email": "developers@phpmyadmin.net",
+                    "homepage": "https://www.phpmyadmin.net/team/"
                 }
             ],
-            "description": "MySQL schema parser",
-            "time": "2018-01-09T21:19:45+00:00"
+            "description": "A validating SQL lexer and parser with a focus on MySQL dialect.",
+            "homepage": "https://github.com/phpmyadmin/sql-parser",
+            "keywords": [
+                "analysis",
+                "lexer",
+                "parser",
+                "sql"
+            ],
+            "support": {
+                "issues": "https://github.com/phpmyadmin/sql-parser/issues",
+                "source": "https://github.com/phpmyadmin/sql-parser"
+            },
+            "time": "2020-03-21T00:25:34+00:00"
         },
         {
             "name": "psr/container",
@@ -1227,5 +1260,6 @@
     "platform-dev": [],
     "platform-overrides": {
         "php": "7.1.30"
-    }
+    },
+    "plugin-api-version": "2.0.0"
 }

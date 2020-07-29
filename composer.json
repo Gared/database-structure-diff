@@ -23,6 +23,6 @@
         "php": "^7.1",
         "doctrine/orm": "^2.0",
         "symfony/console": "~3.0|~4.0",
-        "iamcal/sql-parser": "*"
+        "phpmyadmin/sql-parser": "^5.3"
     }
 }
