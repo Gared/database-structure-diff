@@ -54,7 +54,7 @@ class FileParser
     /**
      * Load definition of database structure from sql file
      */
-    private function loadStructureDefinition()
+    private function loadStructureDefinition(): void
     {
         $data = file_get_contents($this->filePath);
 
@@ -71,7 +71,7 @@ class FileParser
      * @param string $databaseName
      * @throws \Doctrine\DBAL\DBALException
      */
-    private function convertToStructure(string $databaseName)
+    private function convertToStructure(string $databaseName): void
     {
         $schemaConfig = new SchemaConfig();
         $schemaConfig->setName($databaseName);
@@ -167,7 +167,7 @@ class FileParser
         }
     }
 
-    private function parseIndex(CreateDefinition $field, Table $schemaTable)
+    private function parseIndex(CreateDefinition $field, Table $schemaTable): void
     {
         $columnNames = [];
         foreach ($field->key->columns as $col) {
