@@ -247,6 +247,8 @@ class DatabaseDiffCommand extends Command
         }
         $conn = DriverManager::getConnection($connection->getConfig(), new Configuration());
         $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('geometry', 'string');
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'float');
         return $conn->getSchemaManager()->getDatabasePlatform();
     }
 
@@ -267,6 +269,8 @@ class DatabaseDiffCommand extends Command
 
         $conn = DriverManager::getConnection($connection->getConfig(), new Configuration());
         $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('geometry', 'string');
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'float');
         $sm = $conn->getSchemaManager();
         return $sm->createSchema();
     }
