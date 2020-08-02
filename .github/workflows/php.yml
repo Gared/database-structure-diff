@@ -30,10 +30,10 @@ jobs:
       if: steps.composer-cache.outputs.cache-hit != 'true'
       run: composer install --prefer-dist --no-progress --no-suggest
       
-    - name: PHPUnit tests
-      uses: php-actions/phpunit@v1
-      with:
-        config: phpunit.xml
+    #- name: PHPUnit tests
+    #  uses: php-actions/phpunit@v1
+    #  with:
+    #    config: phpunit.xml
       
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
