@@ -5,10 +5,14 @@ namespace DatabaseDiffer\Model;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaConfig;
+use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\DecimalType;
 use Doctrine\DBAL\Types\StringType;
 use Exception;
-use iamcal\SQLParser;
+use PhpMyAdmin\SqlParser\Components\CreateDefinition;
+use PhpMyAdmin\SqlParser\Components\Key;
+use PhpMyAdmin\SqlParser\Parser;
+use PhpMyAdmin\SqlParser\Statements\CreateStatement;
 
 class FileParser
 {
@@ -18,7 +22,7 @@ class FileParser
     private $filePath;
 
     /**
-     * @var SQLParser
+     * @var Parser
      */
     private $sqlParser;
 
@@ -43,105 +47,56 @@ class FileParser
         $this->filePath = $filePath;
         $this->platform = $platform;
 
-        $this->loadStructureDefinition($databaseName);
-        $this->convertToStructure();
+        $this->loadStructureDefinition();
+        $this->convertToStructure($databaseName);
     }
 
     /**
      * Load definition of database structure from sql file
-     * @param string $databaseName
      */
-    private function loadStructureDefinition(string $databaseName)
+    private function loadStructureDefinition(): void
     {
         $data = file_get_contents($this->filePath);
 
-        $data = preg_replace('/CREATE TABLE( IF NOT EXISTS)? `(?!' . $databaseName . ')[^;]+;/si', '', $data);
+        $data = preg_replace_callback(
+            '/(INDEX .*)\(((,?\s*\S+ (ASC|DESC))+)\)/',
+            function ($match) {
+                return $match[1] . '(' . str_replace('ASC', '', $match[2]) . ')';
+            },
+            $data
+        );
         if (preg_last_error() !== PREG_NO_ERROR) {
-            throw new Exception('Failed to read sql (propably too big)');
-        }
-        $data = preg_replace('/(`.*`)\.(`.*`)/i', '$2', $data);
-        if (preg_last_error() !== PREG_NO_ERROR) {
-            throw new Exception('Failed to read sql (propably too big)');
+            throw new Exception('Failed to read sql (probably too big)');
         }
 
-        $this->sqlParser = new SQLParser();
-        $this->sqlParser->parse($data);
+        $this->sqlParser = new Parser($data);
     }
 
     /**
      * Convert sql parsed file to doctrine database schema
+     * @param string $databaseName
+     * @throws \Doctrine\DBAL\DBALException
      */
-    private function convertToStructure()
+    private function convertToStructure(string $databaseName): void
     {
         $schemaConfig = new SchemaConfig();
+        $schemaConfig->setName($databaseName);
 
         $this->schema = new Schema([], [], $schemaConfig);
 
-        foreach ($this->sqlParser->tables as $tableName => $table) {
-            $schemaTable = $this->schema->createTable($tableName);
-            foreach ($table['fields'] as $field) {
-                $fieldType = strtolower($field['type']);
-                $column = $schemaTable->addColumn($field['name'], $this->platform->getDoctrineTypeMapping($fieldType));
-                if ($column->getType() instanceof StringType) {
-                    $column->setLength($field['length'] ?? null);
-                    if ($fieldType === 'enum') {
-                        $column->setFixed(false);
+        foreach ($this->sqlParser->statements as $statement) {
+            if ($statement instanceof CreateStatement && $statement->name->table !== null
+                && ($statement->name->database === null || $statement->name->database === $databaseName)) {
+                $schemaTable = $this->schema->createTable($statement->name->table);
+                foreach ($statement->fields as $field) {
+                    if ($field->key instanceof Key) {
+                        $this->parseIndex($field, $schemaTable);
                     } else {
-                        $column->setFixed(stripos($field['type'], 'VAR') === false);
+                        $this->parseColumn($field, $schemaTable);
                     }
-                } else if ($column->getType() instanceof DecimalType) {
-                    $column->setPrecision($field['length'] ?? null);
-                    $column->setScale($field['decimals'] ?? null);
-                }
-                $column->setNotnull($field['null'] !== true);
-                $column->setAutoincrement($field['auto_increment'] ?? false);
-                $column->setUnsigned($field['unsigned'] ?? false);
-                if (isset($field['default'])) {
-                    $column->setDefault($field['default'] !== 'NULL' ? $field['default'] : null);
-                }
-                $column->setComment($this->getComment($field['more'] ?? []));
-            }
-
-            foreach ($table['indexes'] as $index) {
-                $columnNames = [];
-                foreach ($index['cols'] as $col) {
-                    $columnNames[] = $col['name'];
-                }
-
-                if ($index['type'] === 'PRIMARY') {
-                    $schemaTable->setPrimaryKey($columnNames);
-
-                } else if ($index['type'] === 'FOREIGN') {
-                    $refColumnNames = [];
-                    foreach ($index['ref_cols'] as $col) {
-                        $refColumnNames[] = $col['name'];
-                    }
-                    $schemaTable->addForeignKeyConstraint($index['ref_table'], $columnNames, $refColumnNames);
-                } else if ($index['type'] === 'INDEX') {
-                    $schemaTable->addIndex($columnNames, $index['name'] ?? null);
-                } else if ($index['type'] === 'UNIQUE') {
-                    $schemaTable->addUniqueIndex($columnNames, $index['name'] ?? null);
                 }
             }
         }
-    }
-
-    /**
-     * @param array $moreInfo
-     * @return string|null
-     */
-    private function getComment(array $moreInfo): ?string
-    {
-        foreach ($moreInfo as $key => $info) {
-            if ($info === 'COMMENT') {
-                $comment = $moreInfo[$key+1];
-                $comment = str_replace('"', "", $comment);
-                $comment = str_replace("'", "", $comment);
-                return $comment;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -150,5 +105,102 @@ class FileParser
     public function getSchema(): Schema
     {
         return $this->schema;
+    }
+
+    /**
+     * @param CreateDefinition $field
+     * @param Table $schemaTable
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private function parseColumn(CreateDefinition $field, Table $schemaTable): void
+    {
+        $fieldType = strtolower($field->type->name);
+        $column = $schemaTable->addColumn($field->name, $this->platform->getDoctrineTypeMapping($fieldType));
+        if ($column->getType() instanceof StringType) {
+            $column->setLength($field->type->parameters[0] ?? null);
+            if ($fieldType === 'enum') {
+                $column->setFixed(false);
+            } else {
+                $column->setFixed(stripos($fieldType, 'VAR') === false);
+            }
+        } else if ($column->getType() instanceof DecimalType) {
+            $column->setPrecision($field->type->parameters[0] ?? null);
+            $column->setScale($field->type->parameters[1] ?? null);
+        }
+
+        foreach ($field->type->options->options as $option) {
+            if (is_array($option)) {
+                switch ($option['name']) {
+                    case 'CHARACTER SET':
+//                    $column->setCustomSchemaOption($option['name'], $option['value']);
+                        break;
+                }
+            }
+
+            switch ($option) {
+                case 'UNSIGNED':
+                    $column->setUnsigned(true);
+                    break;
+            }
+        }
+
+        foreach ($field->options->options as $option) {
+            if (is_array($option)) {
+                switch ($option['name']) {
+                    case 'COMMENT':
+                        $column->setComment($option['value']);
+                        break;
+                    case 'DEFAULT':
+                        $default = $option['value'];
+                        if (strtolower($default) === 'null') {
+                            $convertedDefault = null;
+                        } else if (is_int($default)) {
+                            $convertedDefault = (int)$default;
+                        } else if (is_string($default)) {
+                            $default = str_replace('"', "", $default);
+                            $default = str_replace("'", "", $default);
+                            $convertedDefault = $default;
+                        } else {
+                            $convertedDefault = $default;
+                        }
+                        $column->setDefault($convertedDefault);
+                        break;
+                }
+            }
+
+            switch ($option) {
+                case 'NOT NULL':
+                    $column->setNotnull(true);
+                    break;
+                case 'NULL':
+                    $column->setNotnull(false);
+                    break;
+                case 'AUTO_INCREMENT':
+                    $column->setAutoincrement(true);
+                    break;
+                case 'UNSIGNED':
+                    $column->setUnsigned(true);
+                    break;
+            }
+        }
+    }
+
+    private function parseIndex(CreateDefinition $field, Table $schemaTable): void
+    {
+        $columnNames = [];
+        foreach ($field->key->columns as $col) {
+            $columnNames[] = $col['name'];
+        }
+
+        if ($field->key->type === 'PRIMARY KEY') {
+            $schemaTable->setPrimaryKey($columnNames);
+        } else if ($field->key->type === 'FOREIGN KEY') {
+            $refColumnNames = $field->references->columns;
+            $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, [], $field->name);
+        } else if ($field->key->type === 'INDEX') {
+            $schemaTable->addIndex($columnNames, $field->key->name ?? null);
+        } else if ($field->key->type === 'UNIQUE KEY') {
+            $schemaTable->addUniqueIndex($columnNames, $field->key->name ?? null);
+        }
     }
 }

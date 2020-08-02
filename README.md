@@ -14,6 +14,7 @@ or clone this repository
 
 ```shell script
 git clone https://github.com/gared/database-structure-diff.git
+composer install --no-dev
 ```
 
 ## Configuration
@@ -23,7 +24,7 @@ Copy the file config.example.php or copy this example in a file
 <?php
 
 return [
-    'diff between sql script and database' => [
+    [
         [
             'dbname' => 'database_name',
             'user' => 'username',
@@ -46,7 +47,7 @@ You can also define multiple groups to make diff
 <?php
 
 return [
-    'diff between sql script and database' => [
+    [
         [
             'dbname' => 'database_name',
             'user' => 'username',
@@ -60,7 +61,7 @@ return [
             'driver' => 'file',
         ],
     ],
-    'diff between two databases' => [
+    [
         [
             'dbname' => 'database_name',
             'user' => 'username',
@@ -145,6 +146,30 @@ group
 
 Renamed indexes
  * fk_group => fk_group_idx
+```
+
+### Use in your code
+You can also work with the response of the diff in your code.
+Example code:
+```php
+<?php
+require __DIR__ . '/vendor/autoload.php';
+$fromConnection = new \DatabaseDiffer\Model\Config\Connection([
+    'dbname' => 'database_name',
+    'user' => 'username',
+    'password' => 'password',
+    'host' => 'hostname',
+    'driver' => 'pdo_mysql',
+]);
+$toConnection = new \DatabaseDiffer\Model\Config\Connection([
+    'dbname' => 'database_name',
+    'path' => 'path/to/file.sql',
+    'driver' => 'file',
+]);
+$group = new \DatabaseDiffer\Model\Config\Group($fromConnection, $toConnection);
+$diffService = new \DatabaseDiffer\Service\SchemaDiffService($group);
+$schemaDiff = $diffService->getSchemaDiff();
+// $schemaDiff has all informations about changed tables, sequences, etc.
 ```
 
 ## Supported Platforms

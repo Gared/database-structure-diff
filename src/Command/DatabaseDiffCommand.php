@@ -6,6 +6,7 @@ use DatabaseDiffer\Model\Config\Connection;
 use DatabaseDiffer\Model\Config\Group;
 use DatabaseDiffer\Model\ConfigReader;
 use DatabaseDiffer\Model\FileParser;
+use DatabaseDiffer\Service\SchemaDiffService;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
@@ -22,6 +23,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 class DatabaseDiffCommand extends Command
 {
+    private const FORMAT_SQL = 'sql';
+    private const FORMAT_PRETTY = 'pretty';
+
     /**
      * Command configuration
      */
@@ -32,6 +36,7 @@ class DatabaseDiffCommand extends Command
             ->setDescription('Calculates the diff between to database schemes')
             ->addArgument('config', InputArgument::REQUIRED, 'Configuration file where to load schemes from')
             ->addOption('output-file', 'o', InputOption::VALUE_OPTIONAL, 'Define output file to store migration script')
+            ->addOption('format', 'f', InputOption::VALUE_OPTIONAL, 'Define format of output type', self::FORMAT_PRETTY)
             ->addOption('ignore-table', null, InputOption::VALUE_OPTIONAL, 'Regex to ignore table names');
     }
 
@@ -46,28 +51,32 @@ class DatabaseDiffCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $config = new ConfigReader($input->getArgument('config'));
+        $format = $input->getOption('format');
+
+        $exitCode = 0;
 
         foreach ($config->getGroups() as $group) {
-            $platform = $this->getDatabasePlatform($group);
-            $fromSchema = $this->getSchemaFromConnection($group->getFromConnection(), $platform);
-            $toSchema = $this->getSchemaFromConnection($group->getToConnection(), $platform);
+            $diffService = new SchemaDiffService($group, $input->getOption('ignore-table'));
+            $schemaDiff = $diffService->getSchemaDiff();
 
-            if ($input->getOption('ignore-table')) {
-                $this->ignoreTables($fromSchema, $input->getOption('ignore-table'));
-                $this->ignoreTables($toSchema, $input->getOption('ignore-table'));
+            if ($diffService->hasDifference()) {
+                $exitCode = 2;
             }
-
-            $schemaDiff = $this->diffSchema($fromSchema, $toSchema);
 
             if ($input->getOption('output-file')) {
-                $data = PHP_EOL . PHP_EOL . '===== ' . $group->getFromConnection()->getDescription() . ' => ' . $group->getToConnection()->getDescription() . ' =====' . PHP_EOL . PHP_EOL;
-                $data .= implode(';' . PHP_EOL, $schemaDiff->toSql($platform));
+                $data = $diffService->getSqlAlterCommands();
                 file_put_contents($input->getOption('output-file'), $data, FILE_APPEND);
             } else {
-                $io->section($group->getFromConnection()->getDescription() . ' => ' . $group->getToConnection()->getDescription());
-                $this->outputSchemaDiff($io, $schemaDiff);
+                if ($format === self::FORMAT_SQL) {
+                    $io->writeln($diffService->getSqlAlterCommands());
+                } else {
+                    $io->section($group->getFromConnection()->getDescription() . ' => ' . $group->getToConnection()->getDescription());
+                    $this->outputSchemaDiff($io, $schemaDiff);
+                }
             }
         }
+
+        return $exitCode;
     }
 
     /**
@@ -227,72 +236,8 @@ class DatabaseDiffCommand extends Command
         } else if ($value === false) {
             return 'false';
         } else if ($value === null) {
-            return '';
+            return 'NULL';
         }
         return '"' . $value . '"';
-    }
-
-    /**
-     * @param Group $group
-     * @return AbstractPlatform
-     * @throws DBALException
-     */
-    private function getDatabasePlatform(Group $group): AbstractPlatform
-    {
-        $connection = null;
-        if (!$group->getFromConnection()->isFile()) {
-            $connection = $group->getFromConnection();
-        } else if (!$group->getToConnection()->isFile()) {
-            $connection = $group->getToConnection();
-        }
-        $conn = DriverManager::getConnection($connection->getConfig(), new Configuration());
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
-        return $conn->getSchemaManager()->getDatabasePlatform();
-    }
-
-    /**
-     * @param Connection $connection
-     * @param AbstractPlatform $platform
-     * @return Schema
-     * @throws DBALException
-     */
-    private function getSchemaFromConnection(Connection $connection, AbstractPlatform $platform): Schema
-    {
-        if ($connection->isFile()) {
-            $path = $connection->getConfig()['path'];
-            $databaseName = $connection->getConfig()['dbname'];
-            $parser = new FileParser($path, $databaseName, $platform);
-            return $parser->getSchema();
-        }
-
-        $conn = DriverManager::getConnection($connection->getConfig(), new Configuration());
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
-        $sm = $conn->getSchemaManager();
-        return $sm->createSchema();
-    }
-
-    /**
-     * @param Schema $fromSchema
-     * @param Schema $toSchema
-     * @return SchemaDiff
-     */
-    private function diffSchema(Schema $fromSchema, Schema $toSchema): SchemaDiff
-    {
-        $comparator = new Comparator();
-        $schemaDiff = $comparator->compare($fromSchema, $toSchema);
-        return $schemaDiff;
-    }
-
-    /**
-     * @param Schema $schema
-     * @param string $ignoreTable
-     */
-    private function ignoreTables(Schema $schema, string $ignoreTable)
-    {
-        foreach ($schema->getTableNames() as $tableName) {
-            if (preg_match('/' . $ignoreTable . '/i', $tableName)) {
-                $schema->dropTable($tableName);
-            }
-        }
     }
 }
