@@ -33,6 +33,8 @@ jobs:
       
     - name: PHPUnit tests
       uses: php-actions/phpunit@v1
+      with:
+        config: phpunit.xml
       
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
