@@ -71,7 +71,7 @@ class DatabaseDiffCommand extends Command
                     $io->writeln($diffService->getSqlAlterCommands());
                 } else {
                     $io->section($group->getFromConnection()->getDescription() . ' => ' . $group->getToConnection()->getDescription());
-                    $this->outputSchemaDiff($io, $schemaDiff);
+                    $this->outputSchemaDiff($io, $schemaDiff, $diffService);
                 }
             }
         }
@@ -83,7 +83,7 @@ class DatabaseDiffCommand extends Command
      * @param SymfonyStyle $io
      * @param SchemaDiff $schemaDiff
      */
-    private function outputSchemaDiff(SymfonyStyle $io, SchemaDiff $schemaDiff)
+    private function outputSchemaDiff(SymfonyStyle $io, SchemaDiff $schemaDiff, SchemaDiffService $diffService)
     {
         if (count($schemaDiff->newTables) > 0) {
             $io->title('New tables');
@@ -135,7 +135,11 @@ class DatabaseDiffCommand extends Command
 
                         $list = [];
                         foreach ($changedColumn->changedProperties as $property) {
-                            $list[] = $property . ': ' . $this->getPropertyValue($fromColumnArray[$property]) . ' => ' . $this->getPropertyValue($toColumnArray[$property]);
+                            if ($fromColumnArray[$property] instanceof Doctrine\DBAL\Types\Type) {
+                                $list[] = $property . ': ' . $fromColumnArray[$property]->getSQLDeclaration($fromColumnArray, $diffService->getDatabasePlatform()) . ' => ' . $toColumnArray[$property]->getSQLDeclaration($toColumnArray, $diffService->getDatabasePlatform());    
+                            } else {
+                                $list[] = $property . ': ' . $this->getPropertyValue($fromColumnArray[$property]) . ' => ' . $this->getPropertyValue($toColumnArray[$property]);
+                            }
                         }
                         $io->listing($list);
                     }
