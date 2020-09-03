@@ -214,7 +214,7 @@ class DatabaseDiffCommand extends Command
                 }
 
                 if (count($changedTable->removedForeignKeys) > 0) {
-                    $io->write('Changed foreign keys');
+                    $io->write('Removed foreign keys');
                     $list = [];
                     foreach ($changedTable->removedForeignKeys as $removedForeignKey) {
                         $list[] = $removedForeignKey->getName();
