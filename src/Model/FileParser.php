@@ -116,6 +116,7 @@ class FileParser
     {
         $fieldType = strtolower($field->type->name);
         $column = $schemaTable->addColumn($field->name, $this->platform->getDoctrineTypeMapping($fieldType));
+        $column->setNotnull(false);
         if ($column->getType() instanceof StringType) {
             $column->setLength($field->type->parameters[0] ?? null);
             if ($fieldType === 'enum') {
