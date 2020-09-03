@@ -120,7 +120,7 @@ class DatabaseDiffCommand extends Command
                     $io->write('Added columns');
                     $list = [];
                     foreach ($changedTable->addedColumns as $addedColumn) {
-                        $list[] = $addedColumn->getName() . ': ' . $addedColumn->getType() . ' ' . $addedColumn->getLength();
+                        $list[] = $addedColumn->getName() . ': ' . $addedColumn->getType()->getSQLDeclaration($addedColumn->toArray(), $diffService->getDatabasePlatform()) . ' ' . $addedColumn->getLength();
                     }
                     $io->listing($list);
                 }
