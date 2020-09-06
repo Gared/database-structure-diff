@@ -2,17 +2,9 @@
 
 namespace DatabaseDiffer\Command;
 
-use DatabaseDiffer\Model\Config\Connection;
-use DatabaseDiffer\Model\Config\Group;
 use DatabaseDiffer\Model\ConfigReader;
-use DatabaseDiffer\Model\FileParser;
 use DatabaseDiffer\Service\SchemaDiffService;
-use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DBALException;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Schema\Comparator;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
