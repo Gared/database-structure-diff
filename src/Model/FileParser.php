@@ -131,23 +131,23 @@ class FileParser
 
         foreach ($field->type->options->options as $option) {
             if (is_array($option)) {
-                switch ($option['name']) {
+                switch (strtoupper($option['name'])) {
                     case 'CHARACTER SET':
 //                    $column->setCustomSchemaOption($option['name'], $option['value']);
                         break;
                 }
-            }
-
-            switch ($option) {
-                case 'UNSIGNED':
-                    $column->setUnsigned(true);
-                    break;
+            } else {
+                switch (strtoupper($option)) {
+                    case 'UNSIGNED':
+                        $column->setUnsigned(true);
+                        break;
+                }
             }
         }
 
         foreach ($field->options->options as $option) {
             if (is_array($option)) {
-                switch ($option['name']) {
+                switch (strtoupper($option['name'])) {
                     case 'COMMENT':
                         $column->setComment($option['value']);
                         break;
@@ -167,21 +167,21 @@ class FileParser
                         $column->setDefault($convertedDefault);
                         break;
                 }
-            }
-
-            switch ($option) {
-                case 'NOT NULL':
-                    $column->setNotnull(true);
-                    break;
-                case 'NULL':
-                    $column->setNotnull(false);
-                    break;
-                case 'AUTO_INCREMENT':
-                    $column->setAutoincrement(true);
-                    break;
-                case 'UNSIGNED':
-                    $column->setUnsigned(true);
-                    break;
+            } else {
+                switch (strtoupper($option)) {
+                    case 'NOT NULL':
+                        $column->setNotnull(true);
+                        break;
+                    case 'NULL':
+                        $column->setNotnull(false);
+                        break;
+                    case 'AUTO_INCREMENT':
+                        $column->setAutoincrement(true);
+                        break;
+                    case 'UNSIGNED':
+                        $column->setUnsigned(true);
+                        break;
+                }
             }
         }
     }
@@ -193,31 +193,37 @@ class FileParser
             $columnNames[] = $col['name'];
         }
 
-        if ($field->key->type === 'PRIMARY KEY') {
-            $schemaTable->setPrimaryKey($columnNames);
-        } else if ($field->key->type === 'FOREIGN KEY') {
-            $refColumnNames = $field->references->columns;
-            $options = [];
-            foreach ($field->references->options as $optionContainer) {
-                foreach ($optionContainer as $option) {
-                    switch (strtoupper($option['name'])) {
-                        case 'ON UPDATE':
-                            $options['onUpdate'] = $option['value'];
-                            break;
-                        case 'ON DELETE':
-                            $options['onDelete'] = $option['value'];
-                            break;
+        switch (strtoupper($field->key->type)) {
+            case 'PRIMARY KEY':
+                $schemaTable->setPrimaryKey($columnNames);
+                break;
+            case 'FOREIGN KEY':
+                $refColumnNames = $field->references->columns;
+                $options = [];
+                foreach ($field->references->options as $optionContainer) {
+                    foreach ($optionContainer as $option) {
+                        switch (strtoupper($option['name'])) {
+                            case 'ON UPDATE':
+                                $options['onUpdate'] = $option['value'];
+                                break;
+                            case 'ON DELETE':
+                                $options['onDelete'] = $option['value'];
+                                break;
+                        }
                     }
                 }
-            }
-            if ($field->name !== null && !$schemaTable->hasIndex($field->name)) {
-                $schemaTable->addIndex($columnNames, $field->name);
-            }
-            $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);
-        } else if ($field->key->type === 'INDEX') {
-            $schemaTable->addIndex($columnNames, $field->key->name ?? null);
-        } else if ($field->key->type === 'UNIQUE KEY') {
-            $schemaTable->addUniqueIndex($columnNames, $field->key->name ?? null);
+                if ($field->name !== null && !$schemaTable->hasIndex($field->name)) {
+                    $schemaTable->addIndex($columnNames, $field->name);
+                }
+                $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);
+                break;
+            case 'INDEX':
+            case 'KEY':
+                $schemaTable->addIndex($columnNames, $field->key->name ?? null);
+                break;
+            case 'UNIQUE KEY':
+                $schemaTable->addUniqueIndex($columnNames, $field->key->name ?? null);
+                break;
         }
     }
 }

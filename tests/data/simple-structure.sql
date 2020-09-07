@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `testdb`.`user` (
-  `user_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL auto_increment,
   `login_name` VARCHAR(50) CHARACTER SET 'utf8mb4' NOT NULL COMMENT 'name for login',
   `password` CHAR(60) CHARACTER SET 'utf8mb4' NOT NULL,
   `email` VARCHAR(100) CHARACTER SET 'utf8mb4' NOT NULL,
