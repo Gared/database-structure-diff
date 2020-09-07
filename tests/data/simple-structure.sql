@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
     FOREIGN KEY (`user_id`)
     REFERENCES `testdb`.`club` (`club_id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON UPDATE CASCADE,
   PRIMARY KEY (`user_id`));
 
 create table testdb.club (

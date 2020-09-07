@@ -22,6 +22,13 @@ class FileParserTest extends TestCase
         $this->assertSame('user', $firstTable->getName());
         $this->assertCount(16, $firstTable->getColumns());
 
+        $foreignKeyClub = $firstTable->getForeignKey('fk_club');
+        $this->assertSame(['user_id'], $foreignKeyClub->getColumns());
+        $this->assertSame('club', $foreignKeyClub->getForeignTableName());
+        $this->assertSame(['club_id'], $foreignKeyClub->getForeignColumns());
+        $this->assertSame('CASCADE', $foreignKeyClub->getOption('onUpdate'));
+        $this->assertSame('NO ACTION', $foreignKeyClub->getOption('onDelete'));
+
         $userColumn = $firstTable->getColumn('user_id');
         $this->assertSame(true, $userColumn->getAutoincrement());
         $this->assertSame(null, $userColumn->getComment());
