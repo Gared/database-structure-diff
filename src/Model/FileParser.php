@@ -3,6 +3,7 @@
 namespace DatabaseDiffer\Model;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaConfig;
 use Doctrine\DBAL\Schema\Table;
@@ -95,7 +96,26 @@ class FileParser
                         $this->parseColumn($field, $schemaTable);
                     }
                 }
+
+                foreach ($schemaTable->getForeignKeys() as $foreignKey) {
+                    $this->createIndexForForeignKeyIfNeeded($schemaTable, $foreignKey);
+                }
             }
+        }
+    }
+
+    private function createIndexForForeignKeyIfNeeded(Table $schemaTable, ForeignKeyConstraint $foreignKey): void
+    {
+        if (!$schemaTable->hasIndex($foreignKey->getName())) {
+            foreach ($schemaTable->getIndexes() as $index) {
+                foreach ($foreignKey->getColumns() as $foreignKeyColumn) {
+                    if (!in_array($foreignKeyColumn, $index->getColumns(), true)) {
+                        continue;
+                    }
+                }
+                return;
+            }
+            $schemaTable->addIndex($foreignKey->getColumns(), $foreignKey->getName());
         }
     }
 
@@ -212,9 +232,6 @@ class FileParser
                         }
                     }
                 }
-                if ($field->name !== null && !$schemaTable->hasIndex($field->name)) {
-                    $schemaTable->addIndex($columnNames, $field->name);
-                }
                 $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);
                 break;
             case 'INDEX':
@@ -222,6 +239,7 @@ class FileParser
                 $schemaTable->addIndex($columnNames, $field->key->name ?? null);
                 break;
             case 'UNIQUE KEY':
+            case 'UNIQUE INDEX':
                 $schemaTable->addUniqueIndex($columnNames, $field->key->name ?? null);
                 break;
         }
