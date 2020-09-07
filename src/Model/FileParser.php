@@ -210,6 +210,9 @@ class FileParser
                     }
                 }
             }
+            if ($field->name !== null && !$schemaTable->hasIndex($field->name)) {
+                $schemaTable->addIndex($columnNames, $field->name);
+            }
             $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);
         } else if ($field->key->type === 'INDEX') {
             $schemaTable->addIndex($columnNames, $field->key->name ?? null);
