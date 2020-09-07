@@ -197,7 +197,20 @@ class FileParser
             $schemaTable->setPrimaryKey($columnNames);
         } else if ($field->key->type === 'FOREIGN KEY') {
             $refColumnNames = $field->references->columns;
-            $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, [], $field->name);
+            $options = [];
+            foreach ($field->references->options as $optionContainer) {
+                foreach ($optionContainer as $option) {
+                    switch (strtoupper($option['name'])) {
+                        case 'ON UPDATE':
+                            $options['onUpdate'] = $option['value'];
+                            break;
+                        case 'ON DELETE':
+                            $options['onDelete'] = $option['value'];
+                            break;
+                    }
+                }
+            }
+            $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);
         } else if ($field->key->type === 'INDEX') {
             $schemaTable->addIndex($columnNames, $field->key->name ?? null);
         } else if ($field->key->type === 'UNIQUE KEY') {
