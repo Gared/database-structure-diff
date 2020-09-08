@@ -96,26 +96,7 @@ class FileParser
                         $this->parseColumn($field, $schemaTable);
                     }
                 }
-
-                foreach ($schemaTable->getForeignKeys() as $foreignKey) {
-                    $this->createIndexForForeignKeyIfNeeded($schemaTable, $foreignKey);
-                }
             }
-        }
-    }
-
-    private function createIndexForForeignKeyIfNeeded(Table $schemaTable, ForeignKeyConstraint $foreignKey): void
-    {
-        if (!$schemaTable->hasIndex($foreignKey->getName())) {
-            foreach ($schemaTable->getIndexes() as $index) {
-                foreach ($foreignKey->getColumns() as $foreignKeyColumn) {
-                    if (!in_array($foreignKeyColumn, $index->getColumns(), true)) {
-                        continue;
-                    }
-                }
-                return;
-            }
-            $schemaTable->addIndex($foreignKey->getColumns(), $foreignKey->getName());
         }
     }
 
@@ -140,6 +121,7 @@ class FileParser
         if ($column->getType() instanceof StringType) {
             $column->setLength($field->type->parameters[0] ?? null);
             if ($fieldType === 'enum') {
+                $column->setColumnDefinition('ENUM(' . implode(', ', $field->type->parameters) . ')');
                 $column->setFixed(false);
             } else {
                 $column->setFixed(stripos($fieldType, 'VAR') === false);

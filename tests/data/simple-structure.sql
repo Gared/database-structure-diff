@@ -31,4 +31,16 @@ create table testdb.club (
   /*point POINT,*/
   rating DECIMAL(2,1) UNSIGNED NULL,
   category VARCHAR(40) NOT NULL DEFAULT 'test'
-)
+);
+
+create table testdb.user_new
+(
+    `user_id` INT(11) NOT NULL auto_increment,
+    `club_id` INT(11) NULL,
+    `color` ENUM('red', 'blue', 'yellow') NOT NULL,
+    CONSTRAINT `fk_club`
+        FOREIGN KEY (`club_id`)
+            REFERENCES `testdb`.`club` (`club_id`)
+            ON DELETE NO ACTION
+            ON UPDATE CASCADE
+);

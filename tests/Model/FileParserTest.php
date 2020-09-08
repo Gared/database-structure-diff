@@ -13,10 +13,12 @@ class FileParserTest extends TestCase
 {
     public function testParsing(): void
     {
-        $parser = new FileParser(__DIR__ . '/../data/simple-structure.sql', 'testdb', new MySQL57Platform());
+        $platform = new MySQL57Platform();
+        $platform->registerDoctrineTypeMapping('enum', 'string');
+        $parser = new FileParser(__DIR__ . '/../data/simple-structure.sql', 'testdb', $platform);
         $this->assertSame('testdb', $parser->getSchema()->getName());
 
-        $this->assertCount(2, $parser->getSchema()->getTables());
+        $this->assertCount(3, $parser->getSchema()->getTables());
 
         $firstTable = $parser->getSchema()->getTable('testdb.user');
         $this->assertSame('user', $firstTable->getName());
@@ -63,5 +65,17 @@ class FileParserTest extends TestCase
 
         $categoryColumn = $clubTable->getColumn('category');
         $this->assertSame('test', $categoryColumn->getDefault());
+
+        $userNewTable = $parser->getSchema()->getTable('testdb.user_new');
+        $this->assertSame('user_new', $userNewTable->getName());
+        $this->assertCount(3, $userNewTable->getColumns());
+        $hasIndexOnClubColumn = false;
+        foreach ($userNewTable->getIndexes() as $index) {
+            if ($index->getColumns() === ['club_id']) {
+                $hasIndexOnClubColumn = true;
+            }
+        }
+        $this->assertTrue($hasIndexOnClubColumn);
+        $this->assertSame("ENUM('red', 'blue', 'yellow')", $userNewTable->getColumn('color')->getColumnDefinition());
     }
 }
