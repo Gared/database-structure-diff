@@ -242,6 +242,10 @@ class FileParser
             case 'UNIQUE INDEX':
                 $schemaTable->addUniqueIndex($columnNames, $field->key->name ?? null);
                 break;
+            case 'FULLTEXT KEY':
+            case 'FULLTEXT INDEX':
+                $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['fulltext']);
+                break;
         }
     }
 }

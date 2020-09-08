@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
   `is_verified` TINYINT NOT NULL DEFAULT '0',
   unique KEY `unique_email` (`email`),
   INDEX `index_verified_end_date` (`is_verified` ASC, `end_date` ASC),
+  FULLTEXT KEY fulltext_street (street),
   unique index `fk_club_idx` (`user_id`),
   CONSTRAINT `fk_club`
     FOREIGN KEY (`user_id`)

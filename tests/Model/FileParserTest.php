@@ -31,6 +31,10 @@ class FileParserTest extends TestCase
         $this->assertFalse($firstTable->hasIndex('fk_club'));
         $this->assertTrue($firstTable->hasIndex('fk_club_idx'), print_r($firstTable->getIndexes(), true));
 
+        $this->assertTrue($firstTable->hasIndex('fulltext_street'));
+        $fullTextIndex = $firstTable->getIndex('fulltext_street');
+        $this->assertSame(['fulltext'], $fullTextIndex->getFlags());
+
         $userColumn = $firstTable->getColumn('user_id');
         $this->assertSame(true, $userColumn->getAutoincrement());
         $this->assertSame(null, $userColumn->getComment());
