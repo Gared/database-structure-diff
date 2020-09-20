@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build-and-test:
 
     runs-on: ubuntu-latest
 
@@ -30,12 +30,7 @@ jobs:
       if: steps.composer-cache.outputs.cache-hit != 'true'
       run: composer install --prefer-dist --no-progress --no-suggest
 
-  build-test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: php-actions/composer@v1 # or alternative dependency management
+    # - uses: php-actions/composer@v1 # or alternative dependency management
 
     - name: PHPUnit tests
       uses: php-actions/phpunit@v7
