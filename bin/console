@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 use DatabaseDiffer\Command\DatabaseDiffCommand;
 use Symfony\Component\Console\Application;
