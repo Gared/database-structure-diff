@@ -9,9 +9,11 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
+use Exception;
 
 class SchemaDiffService
 {
@@ -49,9 +51,9 @@ class SchemaDiffService
     }
 
     /**
-     * @param Group $group
      * @return AbstractPlatform
      * @throws DBALException
+     * @throws Exception
      */
     public function getDatabasePlatform(): AbstractPlatform
     {
@@ -60,12 +62,12 @@ class SchemaDiffService
             $connection = $this->group->getFromConnection();
         } else if (!$this->group->getToConnection()->isFile()) {
             $connection = $this->group->getToConnection();
+        } else {
+            throw new Exception('One of the configured connections must not be of type "file"');
         }
-        $conn = DriverManager::getConnection($connection->getConfig(), new Configuration());
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('geometry', 'string');
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'float');
-        return $conn->getSchemaManager()->getDatabasePlatform();
+
+        $schemaManager = $this->getSchemaManager($connection);
+        return $schemaManager->getDatabasePlatform();
     }
 
     /**
@@ -83,12 +85,8 @@ class SchemaDiffService
             return $parser->getSchema();
         }
 
-        $conn = DriverManager::getConnection($connection->getConfig(), new Configuration());
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('geometry', 'string');
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'float');
-        $sm = $conn->getSchemaManager();
-        return $sm->createSchema();
+        $schemaManager = $this->getSchemaManager($connection);
+        return $schemaManager->createSchema();
     }
 
     public function hasDifference(): bool
@@ -130,5 +128,19 @@ class SchemaDiffService
                 $schema->dropTable($tableName);
             }
         }
+    }
+
+    /**
+     * @param Connection $connection
+     * @return AbstractSchemaManager
+     * @throws DBALException
+     */
+    protected function getSchemaManager(Connection $connection): AbstractSchemaManager
+    {
+        $conn = DriverManager::getConnection($connection->getConfig());
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('geometry', 'string');
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'float');
+        return $conn->getSchemaManager();
     }
 }
