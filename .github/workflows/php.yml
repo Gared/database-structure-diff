@@ -29,11 +29,18 @@ jobs:
     - name: Install dependencies
       if: steps.composer-cache.outputs.cache-hit != 'true'
       run: composer install --prefer-dist --no-progress --no-suggest
-      
-    #- name: PHPUnit tests
-    #  uses: php-actions/phpunit@v1
-    #  with:
-    #    config: phpunit.xml
+
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: php-actions/composer@v1 # or alternative dependency management
+
+    - name: PHPUnit tests
+      uses: php-actions/phpunit@v7
+      with:
+        configuration: phpunit.xml
       
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
