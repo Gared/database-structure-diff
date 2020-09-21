@@ -175,4 +175,4 @@ $schemaDiff = $diffService->getSchemaDiff();
 ## Supported Platforms
 
 * Doctrine supported databases (MySQL, MariaDB, Oracle, etc.)
-* You need at least PHP 7.1
+* You need at least PHP 7.3
