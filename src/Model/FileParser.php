@@ -229,6 +229,10 @@ class FileParser
             case 'FULLTEXT INDEX':
                 $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['fulltext']);
                 break;
+            case 'SPATIAL KEY':
+            case 'SPATIAL INDEX':
+                $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['spatial']);
+                break;
         }
     }
 }
