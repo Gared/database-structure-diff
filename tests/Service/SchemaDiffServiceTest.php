@@ -29,6 +29,7 @@ class SchemaDiffServiceTest extends TestCase
         $group = new Group($fromConnection, $toConnection);
         $platform = new MySQL57Platform();
         $platform->registerDoctrineTypeMapping('enum', 'string');
+        $platform->registerDoctrineTypeMapping('geometry', 'string');
 
         $schemaManager = $this->createPartialMock(MySqlSchemaManager::class, ['getDatabasePlatform', 'createSchema']);
         $schemaManager->method('getDatabasePlatform')->willReturn($platform);
