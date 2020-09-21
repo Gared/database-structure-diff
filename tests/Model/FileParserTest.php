@@ -15,6 +15,7 @@ class FileParserTest extends TestCase
     {
         $platform = new MySQL57Platform();
         $platform->registerDoctrineTypeMapping('enum', 'string');
+        $platform->registerDoctrineTypeMapping('geometry', 'string');
         $parser = new FileParser(__DIR__ . '/../data/simple-structure.sql', 'testdb', $platform);
         $this->assertSame('testdb', $parser->getSchema()->getName());
 
@@ -68,7 +69,7 @@ class FileParserTest extends TestCase
 
         $userNewTable = $parser->getSchema()->getTable('testdb.user_new');
         $this->assertSame('user_new', $userNewTable->getName());
-        $this->assertCount(3, $userNewTable->getColumns());
+        $this->assertCount(4, $userNewTable->getColumns());
         $hasIndexOnClubColumn = false;
         foreach ($userNewTable->getIndexes() as $index) {
             if ($index->getColumns() === ['club_id']) {
@@ -77,5 +78,9 @@ class FileParserTest extends TestCase
         }
         $this->assertTrue($hasIndexOnClubColumn);
         $this->assertSame("ENUM('red', 'blue', 'yellow')", $userNewTable->getColumn('color')->getColumnDefinition());
+        $this->assertTrue($userNewTable->hasIndex('geometry'));
+        $this->assertTrue($userNewTable->hasColumn('geometry'));
+        $geometryColumn = $userNewTable->getColumn('geometry');
+        $this->assertTrue($geometryColumn->getFixed());
     }
 }

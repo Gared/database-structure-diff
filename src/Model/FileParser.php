@@ -118,6 +118,7 @@ class FileParser
         $fieldType = strtolower($field->type->name);
         $column = $schemaTable->addColumn($field->name, $this->platform->getDoctrineTypeMapping($fieldType));
         $column->setNotnull(false);
+        $column->setFixed(true);
         if ($column->getType() instanceof StringType) {
             $column->setLength($field->type->parameters[0] ?? null);
             if ($fieldType === 'enum') {
@@ -227,6 +228,10 @@ class FileParser
             case 'FULLTEXT KEY':
             case 'FULLTEXT INDEX':
                 $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['fulltext']);
+                break;
+            case 'SPATIAL KEY':
+            case 'SPATIAL INDEX':
+                $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['spatial']);
                 break;
         }
     }

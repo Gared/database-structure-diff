@@ -37,7 +37,9 @@ create table testdb.user_new
 (
     `user_id` INT(11) NOT NULL auto_increment,
     `club_id` INT(11) NULL,
+    `geometry` geometry NOT NULL,
     `color` ENUM('red', 'blue', 'yellow') NOT NULL,
+    SPATIAL INDEX `geometry` (`geometry`),
     CONSTRAINT `fk_club`
         FOREIGN KEY (`club_id`)
             REFERENCES `testdb`.`club` (`club_id`)
