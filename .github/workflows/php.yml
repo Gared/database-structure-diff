@@ -33,7 +33,7 @@ jobs:
     # - uses: php-actions/composer@v1 # or alternative dependency management
 
     - name: PHPUnit tests
-      uses: php-actions/phpunit@v7
+      uses: php-actions/phpunit@v9
       with:
         configuration: phpunit.xml
       
