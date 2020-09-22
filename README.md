@@ -81,7 +81,7 @@ return [
 ```
 
 For more database configuration read the doctrine configuration:
-https://www.doctrine-project.org/projects/doctrine-dbal/en/2.9/reference/configuration.html
+https://www.doctrine-project.org/projects/doctrine-dbal/en/stable/reference/configuration.html
 
 ## Usage 
 
