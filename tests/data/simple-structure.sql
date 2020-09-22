@@ -40,6 +40,8 @@ create table testdb.user_new
     `geometry` geometry NOT NULL,
     `color` ENUM('red', 'blue', 'yellow') NOT NULL,
     SPATIAL INDEX `geometry` (`geometry`),
+    CONSTRAINT `unique_color`
+        UNIQUE (`color`),
     CONSTRAINT `fk_club`
         FOREIGN KEY (`club_id`)
             REFERENCES `testdb`.`club` (`club_id`)

@@ -124,6 +124,8 @@ class FileParser
             if ($fieldType === 'enum') {
                 $column->setColumnDefinition('ENUM(' . implode(', ', $field->type->parameters) . ')');
                 $column->setFixed(false);
+            } else if ($fieldType === 'geometry') {
+                $column->setFixed(false);
             } else {
                 $column->setFixed(stripos($fieldType, 'VAR') === false);
             }
@@ -231,7 +233,12 @@ class FileParser
                 break;
             case 'SPATIAL KEY':
             case 'SPATIAL INDEX':
-                $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['spatial']);
+                $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['spatial'], ['lengths' => [32]]);
+                break;
+            default:
+                if ($field->isConstraint === true && strtoupper($field->key->type) === 'UNIQUE') {
+                    $schemaTable->addUniqueIndex($columnNames, $field->name ?? null);
+                }
                 break;
         }
     }
