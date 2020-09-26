@@ -36,6 +36,14 @@ jobs:
       uses: php-actions/phpunit@v9
       with:
         configuration: phpunit.xml
+
+    - name: Monitor coverage
+      uses: slavcodev/coverage-monitor-action@1.2.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        clover_file: "clover.xml"
+        threshold_alert: 10
+        threshold_warning: 50
       
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
