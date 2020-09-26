@@ -7,6 +7,7 @@ use DatabaseDiffer\Model\ConfigReader;
 use DatabaseDiffer\Service\SchemaDiffService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\SchemaDiff;
+use Doctrine\DBAL\Types\Type;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -104,7 +105,7 @@ class DatabaseDiffCommand extends Command
             $io->title('Changed tables');
             foreach ($schemaDiff->changedTables as $changedTable) {
                 if ($changedTable->getNewName() !== false) {
-                    $io->section($changedTable->name . ' => ' . $changedTable->getNewName());
+                    $io->section($changedTable->name . ' => ' . $changedTable->getNewName()->getName());
                 } else {
                     $io->section($changedTable->name);
                 }
@@ -128,7 +129,7 @@ class DatabaseDiffCommand extends Command
 
                         $list = [];
                         foreach ($changedColumn->changedProperties as $property) {
-                            if ($fromColumnArray[$property] instanceof Doctrine\DBAL\Types\Type) {
+                            if ($fromColumnArray[$property] instanceof Type) {
                                 $list[] = $property . ': ' . $fromColumnArray[$property]->getSQLDeclaration($fromColumnArray, $diffService->getDatabasePlatform()) . ' => ' . $toColumnArray[$property]->getSQLDeclaration($toColumnArray, $diffService->getDatabasePlatform());    
                             } else {
                                 $list[] = $property . ': ' . $this->getPropertyValue($fromColumnArray[$property]) . ' => ' . $this->getPropertyValue($toColumnArray[$property]);
@@ -223,7 +224,7 @@ class DatabaseDiffCommand extends Command
     }
 
     /**
-     * @param $value
+     * @param string|bool|null $value
      * @return string
      */
     private function getPropertyValue($value): string
