@@ -1,4 +1,4 @@
-name: PHP Composer
+name: PHP Build & Test
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
     - name: PHPStan
       uses: docker://oskarstark/phpstan-ga
       with:
-        args: analyse src/ --level=5
+        args: analyse src/ --level=4
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
