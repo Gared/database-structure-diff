@@ -36,6 +36,7 @@ jobs:
       uses: php-actions/phpunit@v9
       with:
         configuration: phpunit.xml
+        args: --coverage-text
 
     - name: Monitor coverage
       uses: slavcodev/coverage-monitor-action@1.2.0
