@@ -36,6 +36,11 @@ jobs:
       uses: php-actions/phpunit@v9
       with:
         configuration: phpunit.xml
+
+    - name: PHPStan
+      uses: docker://oskarstark/phpstan-ga
+      with:
+        args: analyse src/
       
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
