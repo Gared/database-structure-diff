@@ -1,0 +1,16 @@
+name: PHPStan
+
+on:
+    push:
+        branches: [ master ]
+    pull_request:
+        branches: [ master ]
+
+jobs:
+    build-and-test:
+        runs-on: ubuntu-latest
+        steps:
+        - name: PHPStan
+          uses: docker://oskarstark/phpstan-ga
+          with:
+              args: analyse src/ --level=5
