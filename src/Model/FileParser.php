@@ -205,16 +205,14 @@ class FileParser
             case 'FOREIGN KEY':
                 $refColumnNames = $field->references->columns;
                 $options = [];
-                foreach ($field->references->options as $optionContainer) {
-                    foreach ($optionContainer as $option) {
-                        switch (strtoupper($option['name'])) {
-                            case 'ON UPDATE':
-                                $options['onUpdate'] = $option['value'];
-                                break;
-                            case 'ON DELETE':
-                                $options['onDelete'] = $option['value'];
-                                break;
-                        }
+                foreach ($field->references->options->options as $optionContainer) {
+                    switch (strtoupper($optionContainer['name'])) {
+                        case 'ON UPDATE':
+                            $options['onUpdate'] = $optionContainer['value'];
+                            break;
+                        case 'ON DELETE':
+                            $options['onDelete'] = $optionContainer['value'];
+                            break;
                     }
                 }
                 $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);
