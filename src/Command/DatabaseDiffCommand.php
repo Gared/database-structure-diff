@@ -105,7 +105,7 @@ class DatabaseDiffCommand extends Command
             $io->title('Changed tables');
             foreach ($schemaDiff->changedTables as $changedTable) {
                 if ($changedTable->getNewName() !== false) {
-                    $io->section($changedTable->name . ' => ' . $changedTable->getNewName());
+                    $io->section($changedTable->name . ' => ' . $changedTable->getNewName()->getName());
                 } else {
                     $io->section($changedTable->name);
                 }
@@ -224,7 +224,7 @@ class DatabaseDiffCommand extends Command
     }
 
     /**
-     * @param $value
+     * @param string|bool|null $value
      * @return string
      */
     private function getPropertyValue($value): string
