@@ -69,6 +69,13 @@ class FileParser
         if (preg_last_error() !== PREG_NO_ERROR) {
             throw new Exception('Failed to read sql (probably too big)');
         }
+        $data = preg_replace_callback(
+            '/(DEFAULT)[\s]+([^\s]*)[\s]+(NULL)/i',
+            function ($match) {
+                return $match[3] . ' ' . $match[1] . ' ' . $match[2];
+            },
+            $data
+        );
 
         $this->sqlParser = new Parser($data);
     }
