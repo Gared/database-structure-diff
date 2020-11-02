@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
   `country_id` INT(11) NULL,
   `mobile_no` VARCHAR(50) CHARACTER SET 'utf8mb4' NULL,
   `birth_date` DATE NULL,
-  `birth_place` VARCHAR(100) CHARACTER SET 'utf8mb4' NULL DEFAULT NULL,
+  `birth_place` VARCHAR(100) CHARACTER SET 'utf8mb4' DEFAULT NULL NULL,
   `end_date` DATETIME NULL DEFAULT NULL,
   `user_hash_value` CHAR(64) CHARACTER SET 'utf8mb4' NOT NULL,
   `is_verified` TINYINT NOT NULL DEFAULT '0',
