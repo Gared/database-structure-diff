@@ -6,12 +6,12 @@ namespace DatabaseDiffer\Model\Config;
 class Group
 {
     /**
-     * @var array
+     * @var Connection
      */
     private $fromConnection;
 
     /**
-     * @var array
+     * @var Connection
      */
     private $toConnection;
 

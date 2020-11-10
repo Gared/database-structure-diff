@@ -1,18 +1,18 @@
 # PHP database diff tool 
 
 This tool is written in PHP and is using doctrine to create diffs between database schemes.
-You can also make a diff between a sql schema dump and a database.
+You can create a diff between a sql schema dump and a database. The output format is either a list of ALTER-SQL commands or a pretty text output. Another option is to get the diff programatically and use the result in your code.
 
 ## Installation
 
 Use composer
-```shell script
+```gitattributes
 composer require gared/database-structure-diff
 ```
 
 or clone this repository
 
-```shell script
+```gitattributes
 git clone https://github.com/gared/database-structure-diff.git
 composer install --no-dev
 ```
@@ -87,25 +87,26 @@ https://www.doctrine-project.org/projects/doctrine-dbal/en/stable/reference/conf
 
 If you cloned this repository execute
 
-```shell script
+```gitattributes
 php bin/console database:calculate-diff config.php
 ```
 
 or if you installed it with composer
 
-```shell script
+```gitattributes
 php vendor/gared/database-structure-diff/bin/console database:calculate-diff config.php
 ```
 
 or use the option "output-file" to store an ALTER script to a file
 
-```shell script
+```gitattributes
 php bin/console database:calculate-diff config.php --output-file alter.sql
 ```
 
 ### Example output
 
-```shell script
+```console
+$ php vendor/gared/database-structure-diff/bin/console database:calculate-diff config.php
 Database: example@10.10.1.1 => File: strcture.sql
 -------------------------------------------------
 

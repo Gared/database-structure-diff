@@ -69,6 +69,13 @@ class FileParser
         if (preg_last_error() !== PREG_NO_ERROR) {
             throw new Exception('Failed to read sql (probably too big)');
         }
+        $data = preg_replace_callback(
+            '/(DEFAULT)[\s]+([^\s]*)[\s]+(NULL)/i',
+            function ($match) {
+                return $match[3] . ' ' . $match[1] . ' ' . $match[2];
+            },
+            $data
+        );
 
         $this->sqlParser = new Parser($data);
     }
@@ -205,16 +212,14 @@ class FileParser
             case 'FOREIGN KEY':
                 $refColumnNames = $field->references->columns;
                 $options = [];
-                foreach ($field->references->options as $optionContainer) {
-                    foreach ($optionContainer as $option) {
-                        switch (strtoupper($option['name'])) {
-                            case 'ON UPDATE':
-                                $options['onUpdate'] = $option['value'];
-                                break;
-                            case 'ON DELETE':
-                                $options['onDelete'] = $option['value'];
-                                break;
-                        }
+                foreach ($field->references->options->options as $optionContainer) {
+                    switch (strtoupper($optionContainer['name'])) {
+                        case 'ON UPDATE':
+                            $options['onUpdate'] = $optionContainer['value'];
+                            break;
+                        case 'ON DELETE':
+                            $options['onDelete'] = $optionContainer['value'];
+                            break;
                     }
                 }
                 $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);

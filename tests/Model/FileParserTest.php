@@ -25,6 +25,13 @@ class FileParserTest extends TestCase
         $this->assertSame('user', $firstTable->getName());
         $this->assertCount(16, $firstTable->getColumns());
 
+        $birthPlaceColumn = $firstTable->getColumn('birth_place');
+        self::assertSame(null, $birthPlaceColumn->getDefault());
+
+        $isVerifiedColumn = $firstTable->getColumn('is_verified');
+        self::assertSame('0', $isVerifiedColumn->getDefault());
+        self::assertSame(false, $isVerifiedColumn->getNotnull());
+
         $foreignKeyClub = $firstTable->getForeignKey('fk_club');
         $this->assertSame(['user_id'], $foreignKeyClub->getColumns());
         $this->assertSame('club', $foreignKeyClub->getForeignTableName());
