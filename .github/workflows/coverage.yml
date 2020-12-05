@@ -1,0 +1,24 @@
+name: Tests & coverage
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: PHPUnit tests
+        uses: php-actions/phpunit@v1
+        with:
+          configuration: phpunit.xml
+          args: --coverage-text
+          php_version : 7.4
+          phpunit_version : 9
+
+      - name: Monitor coverage
+        uses: slavcodev/coverage-monitor-action@1.2.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          clover_file: "logs/clover.xml"
+          threshold_alert: 10
+          threshold_warning: 50
