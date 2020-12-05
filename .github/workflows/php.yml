@@ -33,10 +33,12 @@ jobs:
     # - uses: php-actions/composer@v1 # or alternative dependency management
 
     - name: PHPUnit tests
-      uses: php-actions/phpunit@17-php-versions
+      uses: php-actions/phpunit@v1
       with:
         configuration: phpunit.xml
         args: --coverage-text
+        php_version : 7.4
+        phpunit_version : 9
 
     - name: Monitor coverage
       uses: slavcodev/coverage-monitor-action@1.2.0
