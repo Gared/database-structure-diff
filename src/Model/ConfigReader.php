@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace DatabaseDiffer\Model;
 
+use DatabaseDiffer\Exception\FileNotFoundException;
 use DatabaseDiffer\Model\Config\Connection;
 use DatabaseDiffer\Model\Config\Group;
-use Exception;
 
 class ConfigReader
 {
@@ -22,12 +22,12 @@ class ConfigReader
     /**
      * Config constructor.
      * @param string $filePath
-     * @throws Exception
+     * @throws FileNotFoundException
      */
     public function __construct(string $filePath)
     {
         if (!file_exists($filePath)) {
-            throw new Exception('File not found: ' . $filePath);
+            throw new FileNotFoundException('File not found: ' . $filePath);
         }
 
         $this->filePath = $filePath;
