@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace DatabaseDiffer\Service;
 
+use DatabaseDiffer\Exception\NoDatabaseConnectionConfiguredException;
 use DatabaseDiffer\Model\Config\Connection;
 use DatabaseDiffer\Model\Config\Group;
 use DatabaseDiffer\Model\FileParser;
@@ -12,7 +13,6 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
-use Exception;
 
 class SchemaDiffService
 {
@@ -51,7 +51,8 @@ class SchemaDiffService
 
     /**
      * @return AbstractPlatform
-     * @throws Exception
+     * @throws NoDatabaseConnectionConfiguredException
+     * @throws \Doctrine\DBAL\Exception
      */
     public function getDatabasePlatform(): AbstractPlatform
     {
@@ -61,7 +62,7 @@ class SchemaDiffService
         } else if (!$this->group->getToConnection()->isFile()) {
             $connection = $this->group->getToConnection();
         } else {
-            throw new Exception('One of the configured connections must not be of type "file"');
+            throw new NoDatabaseConnectionConfiguredException('One of the configured connections must not be of type "file"');
         }
 
         $schemaManager = $this->getSchemaManager($connection);

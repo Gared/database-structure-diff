@@ -39,7 +39,7 @@ class ConfigReader
      */
     private function loadConfig(): void
     {
-        $config = include($this->filePath);
+        $config = include $this->filePath;
 
         $this->groups = [];
         foreach ($config as $group) {
