@@ -5,7 +5,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - uses: php-actions/composer@v1
 
       - name: PHPUnit tests
         uses: php-actions/phpunit@v1
@@ -19,6 +20,6 @@ jobs:
         uses: slavcodev/coverage-monitor-action@1.2.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          clover_file: "logs/clover.xml"
+          clover_file: "clover.xml"
           threshold_alert: 10
           threshold_warning: 50

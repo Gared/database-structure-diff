@@ -5,7 +5,6 @@ namespace DatabaseDiffer\Command;
 
 use DatabaseDiffer\Model\ConfigReader;
 use DatabaseDiffer\Service\SchemaDiffService;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\SchemaDiff;
 use Doctrine\DBAL\Types\Type;
 use Symfony\Component\Console\Command\Command;
@@ -34,13 +33,7 @@ class DatabaseDiffCommand extends Command
             ->addOption('ignore-table', null, InputOption::VALUE_OPTIONAL, 'Regex to ignore table names');
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int|void|null
-     * @throws DBALException
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
         $io = new SymfonyStyle($input, $output);
 
@@ -73,10 +66,6 @@ class DatabaseDiffCommand extends Command
         return $exitCode;
     }
 
-    /**
-     * @param SymfonyStyle $io
-     * @param SchemaDiff $schemaDiff
-     */
     private function outputSchemaDiff(SymfonyStyle $io, SchemaDiff $schemaDiff, SchemaDiffService $diffService)
     {
         if (count($schemaDiff->newTables) > 0) {

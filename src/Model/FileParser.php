@@ -42,6 +42,8 @@ class FileParser
      * @param string $filePath
      * @param string $databaseName
      * @param AbstractPlatform $platform
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
      */
     public function __construct(string $filePath, string $databaseName, AbstractPlatform $platform)
     {
@@ -83,7 +85,8 @@ class FileParser
     /**
      * Convert sql parsed file to doctrine database schema
      * @param string $databaseName
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
      */
     private function convertToStructure(string $databaseName): void
     {
@@ -118,7 +121,8 @@ class FileParser
     /**
      * @param CreateDefinition $field
      * @param Table $schemaTable
-     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
      */
     private function parseColumn(CreateDefinition $field, Table $schemaTable): void
     {

@@ -6,8 +6,6 @@ namespace DatabaseDiffer\Service;
 use DatabaseDiffer\Model\Config\Connection;
 use DatabaseDiffer\Model\Config\Group;
 use DatabaseDiffer\Model\FileParser;
-use Doctrine\DBAL\Configuration;
-use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -53,7 +51,6 @@ class SchemaDiffService
 
     /**
      * @return AbstractPlatform
-     * @throws DBALException
      * @throws Exception
      */
     public function getDatabasePlatform(): AbstractPlatform
@@ -75,7 +72,8 @@ class SchemaDiffService
      * @param Connection $connection
      * @param AbstractPlatform $platform
      * @return Schema
-     * @throws DBALException
+     * @throws \Doctrine\DBAL\Exception
+     * @throws \Doctrine\DBAL\Schema\SchemaException
      */
     private function getSchemaFromConnection(Connection $connection, AbstractPlatform $platform): Schema
     {
@@ -121,6 +119,7 @@ class SchemaDiffService
     /**
      * @param Schema $schema
      * @param string $ignoreTable
+     * @throws \Doctrine\DBAL\Schema\SchemaException
      */
     private function ignoreTables(Schema $schema, string $ignoreTable)
     {
@@ -134,7 +133,7 @@ class SchemaDiffService
     /**
      * @param Connection $connection
      * @return AbstractSchemaManager
-     * @throws DBALException
+     * @throws \Doctrine\DBAL\Exception
      */
     protected function getSchemaManager(Connection $connection): AbstractSchemaManager
     {

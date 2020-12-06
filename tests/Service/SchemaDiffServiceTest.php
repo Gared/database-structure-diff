@@ -7,7 +7,7 @@ use DatabaseDiffer\Model\Config\Connection;
 use DatabaseDiffer\Model\Config\Group;
 use DatabaseDiffer\Service\SchemaDiffService;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
-use Doctrine\DBAL\Schema\MySqlSchemaManager;
+use Doctrine\DBAL\Schema\MySQLSchemaManager;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,7 +31,7 @@ class SchemaDiffServiceTest extends TestCase
         $platform->registerDoctrineTypeMapping('enum', 'string');
         $platform->registerDoctrineTypeMapping('geometry', 'string');
 
-        $schemaManager = $this->createPartialMock(MySqlSchemaManager::class, ['getDatabasePlatform', 'createSchema']);
+        $schemaManager = $this->createPartialMock(MySQLSchemaManager::class, ['getDatabasePlatform', 'createSchema']);
         $schemaManager->method('getDatabasePlatform')->willReturn($platform);
         $schemaManager->method('createSchema')->willReturn(new Schema(
             [new Table('user')],
