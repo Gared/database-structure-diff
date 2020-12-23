@@ -37,7 +37,7 @@ jobs:
       with:
         configuration: phpunit.xml
         php_version : 7.4
-        phpunit_version : 9
+        version : 9
       
     - name: PHPStan
       uses: docker://oskarstark/phpstan-ga
