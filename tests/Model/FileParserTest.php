@@ -1,12 +1,15 @@
 <?php
+declare(strict_types=1);
 
 namespace DatabaseDiffer\Tests\Model;
 
+use DatabaseDiffer\Doctrine\EnumType;
 use DatabaseDiffer\Model\FileParser;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Types\DecimalType;
 use Doctrine\DBAL\Types\IntegerType;
 use Doctrine\DBAL\Types\StringType;
+use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\TestCase;
 
 class FileParserTest extends TestCase
@@ -14,7 +17,10 @@ class FileParserTest extends TestCase
     public function testParsing(): void
     {
         $platform = new MySQL57Platform();
-        $platform->registerDoctrineTypeMapping('enum', 'string');
+        if (!Type::hasType('general_enum')) {
+            Type::addType('general_enum', EnumType::class);
+        }
+        $platform->registerDoctrineTypeMapping('enum', 'general_enum');
         $platform->registerDoctrineTypeMapping('geometry', 'string');
         $parser = new FileParser(__DIR__ . '/../data/simple-structure.sql', 'testdb', $platform);
         $this->assertSame('testdb', $parser->getSchema()->getName());

@@ -6,13 +6,18 @@ namespace DatabaseDiffer\Service;
 use DatabaseDiffer\Exception\NoDatabaseConnectionConfiguredException;
 use DatabaseDiffer\Model\Config\Connection;
 use DatabaseDiffer\Model\Config\Group;
+use DatabaseDiffer\Doctrine\DoctrineSchemaEventListener;
+use DatabaseDiffer\Doctrine\EnumType;
 use DatabaseDiffer\Model\FileParser;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Events;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
+use Doctrine\DBAL\Types\Type;
 
 class SchemaDiffService
 {
@@ -138,8 +143,14 @@ class SchemaDiffService
      */
     protected function getSchemaManager(Connection $connection): AbstractSchemaManager
     {
-        $conn = DriverManager::getConnection($connection->getConfig());
-        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+        $evm = new EventManager();
+        $evm->addEventListener(Events::onSchemaColumnDefinition, new DoctrineSchemaEventListener());
+
+        $conn = DriverManager::getConnection($connection->getConfig(), null, $evm);
+        if (!Type::hasType('general_enum')) {
+            Type::addType('general_enum', EnumType::class);
+        }
+        $conn->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'general_enum');
         $conn->getDatabasePlatform()->registerDoctrineTypeMapping('geometry', 'string');
         $conn->getDatabasePlatform()->registerDoctrineTypeMapping('point', 'float');
         return $conn->getSchemaManager();
