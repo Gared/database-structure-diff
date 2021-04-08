@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace DatabaseDiffer\Model;
 
+use DatabaseDiffer\Doctrine\EnumType;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaConfig;
@@ -132,10 +133,7 @@ class FileParser
         $column->setFixed(true);
         if ($column->getType() instanceof StringType) {
             $column->setLength($field->type->parameters[0] ?? null);
-            if ($fieldType === 'enum') {
-                $column->setColumnDefinition('ENUM(' . implode(', ', $field->type->parameters) . ')');
-                $column->setFixed(false);
-            } else if ($fieldType === 'geometry') {
+            if ($fieldType === 'geometry') {
                 $column->setFixed(false);
             } else {
                 $column->setFixed(stripos($fieldType, 'VAR') === false);
@@ -143,6 +141,10 @@ class FileParser
         } else if ($column->getType() instanceof DecimalType) {
             $column->setPrecision($field->type->parameters[0] ?? null);
             $column->setScale($field->type->parameters[1] ?? null);
+        } else if ($column->getType() instanceof EnumType) {
+            $column->setColumnDefinition('ENUM(' . implode(', ', $field->type->parameters) . ')');
+            $column->setFixed(false);
+            $column->setCustomSchemaOption('enum', $field->type->parameters);
         }
 
         foreach ($field->type->options->options as $option) {
