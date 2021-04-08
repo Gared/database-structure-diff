@@ -6,15 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: php-actions/composer@v1
+      - uses: php-actions/composer@v5
 
       - name: PHPUnit tests
-        uses: php-actions/phpunit@v1
+        uses: php-actions/phpunit@v2
         with:
           configuration: phpunit.xml
           args: --coverage-text
           php_version : 7.4
-          phpunit_version : 9
+          version : 9
+          php_extensions: xdebug
+        env:
+          XDEBUG_MODE: coverage
 
       - name: Monitor coverage
         uses: slavcodev/coverage-monitor-action@1.2.0
