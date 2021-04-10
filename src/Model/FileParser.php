@@ -199,6 +199,9 @@ class FileParser
                     case 'UNSIGNED':
                         $column->setUnsigned(true);
                         break;
+                    case 'PRIMARY KEY':
+                        $schemaTable->setPrimaryKey([$column->getName()]);
+                        break;
                 }
             }
         }

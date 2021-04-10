@@ -31,6 +31,13 @@ class FileParserTest extends TestCase
         $this->assertSame('user', $firstTable->getName());
         $this->assertCount(16, $firstTable->getColumns());
 
+        self::assertSame(['user_id'], $firstTable->getPrimaryKey()->getColumns());
+
+        $userIdColumn = $firstTable->getColumn('user_id');
+        self::assertSame(null, $userIdColumn->getDefault());
+        self::assertSame(true, $userIdColumn->getUnsigned());
+        self::assertSame(true, $userIdColumn->getAutoincrement());
+
         $birthPlaceColumn = $firstTable->getColumn('birth_place');
         self::assertSame(null, $birthPlaceColumn->getDefault());
 

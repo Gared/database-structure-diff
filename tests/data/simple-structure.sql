@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `testdb`.`user` (
-  `user_id` INT(11) NOT NULL auto_increment,
+  `user_id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `login_name` VARCHAR(50) CHARACTER SET 'utf8mb4' NOT NULL COMMENT 'name for login',
   `password` CHAR(60) CHARACTER SET 'utf8mb4' NOT NULL,
   `email` VARCHAR(100) CHARACTER SET 'utf8mb4' NOT NULL,
@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
     FOREIGN KEY (`user_id`)
     REFERENCES `testdb`.`club` (`club_id`)
     ON DELETE NO ACTION
-    ON UPDATE CASCADE,
-  PRIMARY KEY (`user_id`));
+    ON UPDATE CASCADE
+);
 
 create table testdb.club (
   club_id INT,
