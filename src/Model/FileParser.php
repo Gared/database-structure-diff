@@ -67,7 +67,7 @@ class FileParser
         $queries = explode(";", $data);
         foreach ($queries as $query) {
             $parsed = $parser->parse($query);
-            if (!$parsed) {
+            if (!$parsed || !array_key_exists('TABLE', $parsed)) {
                 continue;
             }
 
