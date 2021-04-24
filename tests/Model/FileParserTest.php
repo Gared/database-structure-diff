@@ -77,6 +77,9 @@ class FileParserTest extends TestCase
         $this->assertSame('club', $clubTable->getName());
         $this->assertCount(3, $clubTable->getColumns());
 
+        $primaryKey = $clubTable->getPrimaryKey();
+        self::assertSame(['club_id'], $primaryKey->getColumns());
+
         $ratingColumn = $clubTable->getColumn('rating');
         $this->assertSame(false, $ratingColumn->getAutoincrement());
         $this->assertSame(null, $ratingColumn->getComment());
@@ -97,7 +100,7 @@ class FileParserTest extends TestCase
             }
         }
         $this->assertTrue($hasIndexOnClubColumn);
-        $this->assertSame("ENUM('red', 'blue', 'yellow')", $userNewTable->getColumn('color')->getColumnDefinition());
+        $this->assertSame("`color` ENUM('red', 'blue', 'yellow') NOT NULL", $userNewTable->getColumn('color')->getColumnDefinition());
         $this->assertTrue($userNewTable->hasIndex('geometry'));
         $this->assertTrue($userNewTable->hasColumn('geometry'));
         $geometryColumn = $userNewTable->getColumn('geometry');

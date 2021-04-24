@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace DatabaseDiffer\Service;
 
+use DatabaseDiffer\Doctrine\DoctrineSchemaEventListener;
+use DatabaseDiffer\Doctrine\EnumType;
 use DatabaseDiffer\Exception\NoDatabaseConnectionConfiguredException;
 use DatabaseDiffer\Model\Config\Connection;
 use DatabaseDiffer\Model\Config\Group;
-use DatabaseDiffer\Doctrine\DoctrineSchemaEventListener;
-use DatabaseDiffer\Doctrine\EnumType;
 use DatabaseDiffer\Model\FileParser;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
