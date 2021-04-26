@@ -109,7 +109,7 @@ class FileParser
 
         foreach ($this->parsedData as $query) {
             if (is_array($query) && array_key_exists('CREATE', $query)) {
-                $schemaTable = $this->schema->createTable($query['TABLE']['no_quotes']['parts'][1]);
+                $schemaTable = $this->schema->createTable($query['TABLE']['no_quotes']['parts'][1] ?? $query['TABLE']['no_quotes']['parts'][0]);
                 /** @var Item $field */
                 foreach ($query['TABLE']['create-def']['fields'] as $field) {
                     if ($field->data['expr_type'] !== 'column-def') {
@@ -222,10 +222,15 @@ class FileParser
                 foreach ($foreignRefItem->subTree->getItem('column-list')->subTree->getItems('index-column') as $indexItem) {
                     $refColumnNames[] = $indexItem->getName();
                 }
-                $options = [
-                    'onDelete' => $foreignRefItem->data['on_delete'],
-                    'onUpdate' => $foreignRefItem->data['on_update'],
-                ];
+
+                $options = [];
+                if (array_key_exists('on_delete', $foreignRefItem->data)) {
+                    $options['onDelete'] = $foreignRefItem->data['on_delete'];
+                }
+                if (array_key_exists('on_update', $foreignRefItem->data)) {
+                    $options['onUpdate'] = $foreignRefItem->data['on_update'];
+                }
+
                 $name = trim($field->subTree->getItem('constraint')->data['sub_tree']['base_expr'], '`');
                 $schemaTable->addForeignKeyConstraint($foreignRefItem->subTree->getItem('table')->getName(), $columnNames, $refColumnNames, $options, $name);
                 break;
