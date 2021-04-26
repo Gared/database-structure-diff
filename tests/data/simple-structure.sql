@@ -26,6 +26,10 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
     ON UPDATE CASCADE
 );
 
+
+------------
+-- Test comment
+--  -- - - ----
 create table testdb.club (
   club_id INT,
   /*point POINT,*/

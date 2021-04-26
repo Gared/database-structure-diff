@@ -62,6 +62,7 @@ class FileParser
         $data = file_get_contents($this->filePath);
 
         $data = preg_replace('!/\*.*?\*/!s', '', $data);
+        $data = preg_replace('%(--.*)%','', $data);
 
         $parser = new PHPSQLParser();
         $queries = explode(";", $data);
