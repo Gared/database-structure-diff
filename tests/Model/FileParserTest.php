@@ -8,6 +8,7 @@ use DatabaseDiffer\Model\FileParser;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Types\DecimalType;
 use Doctrine\DBAL\Types\IntegerType;
+use Doctrine\DBAL\Types\JsonType;
 use Doctrine\DBAL\Types\StringType;
 use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\TestCase;
@@ -75,7 +76,7 @@ class FileParserTest extends TestCase
 
         $clubTable = $parser->getSchema()->getTable('testdb.club');
         $this->assertSame('club', $clubTable->getName());
-        $this->assertCount(3, $clubTable->getColumns());
+        $this->assertCount(4, $clubTable->getColumns());
 
         $primaryKey = $clubTable->getPrimaryKey();
         self::assertSame(['club_id'], $primaryKey->getColumns());
@@ -89,6 +90,9 @@ class FileParserTest extends TestCase
 
         $categoryColumn = $clubTable->getColumn('category');
         $this->assertSame('test', $categoryColumn->getDefault());
+
+        $documentsColumn = $clubTable->getColumn('documents');
+        $this->assertInstanceOf(JsonType::class, $documentsColumn->getType());
 
         $userNewTable = $parser->getSchema()->getTable('testdb.user_new');
         $this->assertSame('user_new', $userNewTable->getName());

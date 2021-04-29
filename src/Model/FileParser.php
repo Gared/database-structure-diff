@@ -139,15 +139,20 @@ class FileParser
     private function parseColumn(Item $field, Table $schemaTable): void
     {
         $name = $field->subTree->getItem('colref')->data['no_quotes']['parts'][0];
-        $dataTypeItem = $field->subTree->getItem('column-type')->subTree->getItem('data-type');
+        $columnTypeItem = $field->subTree->getItem('column-type');
+        $dataTypeItem = $columnTypeItem->subTree->getItem('data-type');
         $fieldType = $dataTypeItem !== null ? $dataTypeItem->getBaseExpr() : null;
 
         if ($fieldType === null) {
-            $fieldType = 'ENUM';
+            $baseExpr = $columnTypeItem->getBaseExpr();
+            preg_match('#^(.*?)[\( ]#', $baseExpr, $matches);
+
+            if (isset($matches[1])) {
+                $fieldType = $matches[1];
+            }
         }
 
         $column = $schemaTable->addColumn($name, $this->platform->getDoctrineTypeMapping($fieldType));
-        $columnTypeItem = $field->subTree->getItem('column-type');
         $column->setNotnull(!$columnTypeItem->data['nullable']);
         $column->setFixed(true);
         if ($column->getType() instanceof StringType) {

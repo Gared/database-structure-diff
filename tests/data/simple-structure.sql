@@ -35,6 +35,7 @@ create table testdb.club (
   /*point POINT,*/
   rating DECIMAL(2,1) UNSIGNED NULL,
   category VARCHAR(40) NOT NULL DEFAULT 'test',
+  documents JSON NOT NULL,
   PRIMARY KEY (club_id)
 );
 
