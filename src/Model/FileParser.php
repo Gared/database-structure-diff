@@ -241,10 +241,10 @@ class FileParser
                 break;
             case 'index':
 		$constItem = $field->subTree->getItem('const');
-		if ($constItem === null) {
+                if ($constItem === null) {
                     $schemaTable->setPrimaryKey($columnNames);
                     break;
-		}
+                }
                 $schemaTable->addIndex($columnNames, $constItem ? $constItem->getBaseExpr() : null);
                 break;
             case 'primary-key':
