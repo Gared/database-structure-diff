@@ -240,7 +240,12 @@ class FileParser
                 $schemaTable->addForeignKeyConstraint($foreignRefItem->subTree->getItem('table')->getName(), $columnNames, $refColumnNames, $options, $name);
                 break;
             case 'index':
-                $schemaTable->addIndex($columnNames, $field->subTree->getItem('const')->getBaseExpr() ?? null);
+		$constItem = $field->subTree->getItem('const');
+		if ($constItem) {
+                    $schemaTable->setPrimaryKey($columnNames);
+                    break;
+		}
+                $schemaTable->addIndex($columnNames, $constItem ? $constItem->getBaseExpr() : null);
                 break;
             case 'primary-key':
                 $schemaTable->setPrimaryKey($columnNames);
