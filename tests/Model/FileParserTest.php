@@ -8,6 +8,7 @@ use DatabaseDiffer\Model\FileParser;
 use Doctrine\DBAL\Platforms\MySQL57Platform;
 use Doctrine\DBAL\Types\DecimalType;
 use Doctrine\DBAL\Types\IntegerType;
+use Doctrine\DBAL\Types\JsonType;
 use Doctrine\DBAL\Types\StringType;
 use Doctrine\DBAL\Types\Type;
 use PHPUnit\Framework\TestCase;
@@ -75,7 +76,10 @@ class FileParserTest extends TestCase
 
         $clubTable = $parser->getSchema()->getTable('testdb.club');
         $this->assertSame('club', $clubTable->getName());
-        $this->assertCount(3, $clubTable->getColumns());
+        $this->assertCount(5, $clubTable->getColumns());
+
+        $primaryKey = $clubTable->getPrimaryKey();
+        self::assertSame(['club_id'], $primaryKey->getColumns());
 
         $ratingColumn = $clubTable->getColumn('rating');
         $this->assertSame(false, $ratingColumn->getAutoincrement());
@@ -87,6 +91,12 @@ class FileParserTest extends TestCase
         $categoryColumn = $clubTable->getColumn('category');
         $this->assertSame('test', $categoryColumn->getDefault());
 
+        $documentsColumn = $clubTable->getColumn('documents');
+        $this->assertInstanceOf(JsonType::class, $documentsColumn->getType());
+
+        $sizeColumn = $clubTable->getColumn('size');
+        $this->assertInstanceOf(EnumType::class, $sizeColumn->getType());
+
         $userNewTable = $parser->getSchema()->getTable('testdb.user_new');
         $this->assertSame('user_new', $userNewTable->getName());
         $this->assertCount(4, $userNewTable->getColumns());
@@ -97,11 +107,12 @@ class FileParserTest extends TestCase
             }
         }
         $this->assertTrue($hasIndexOnClubColumn);
-        $this->assertSame("ENUM('red', 'blue', 'yellow')", $userNewTable->getColumn('color')->getColumnDefinition());
+        $this->assertSame("`color` ENUM('red', 'blue', 'yellow') NOT NULL", $userNewTable->getColumn('color')->getColumnDefinition());
         $this->assertTrue($userNewTable->hasIndex('geometry'));
         $this->assertTrue($userNewTable->hasColumn('geometry'));
         $geometryColumn = $userNewTable->getColumn('geometry');
         self::assertFalse($geometryColumn->getFixed());
+        self::assertSame(0, $geometryColumn->getLength());
 
         $this->assertTrue($userNewTable->hasIndex('unique_color'));
         $uniqueColorIndex = $userNewTable->getIndex('unique_color');

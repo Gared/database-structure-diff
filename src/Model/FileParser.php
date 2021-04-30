@@ -4,17 +4,16 @@ declare(strict_types=1);
 namespace DatabaseDiffer\Model;
 
 use DatabaseDiffer\Doctrine\EnumType;
+use DatabaseDiffer\Model\Parser\Item;
+use DatabaseDiffer\Model\Parser\ItemSet;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaConfig;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\DecimalType;
 use Doctrine\DBAL\Types\StringType;
-use Exception;
-use PhpMyAdmin\SqlParser\Components\CreateDefinition;
-use PhpMyAdmin\SqlParser\Components\Key;
-use PhpMyAdmin\SqlParser\Parser;
-use PhpMyAdmin\SqlParser\Statements\CreateStatement;
+use PHPSQLParser\PHPSQLParser;
 
 class FileParser
 {
@@ -24,9 +23,9 @@ class FileParser
     private $filePath;
 
     /**
-     * @var Parser
+     * @var array
      */
-    private $sqlParser;
+    private $parsedData = [];
 
     /**
      * @var Schema
@@ -44,7 +43,7 @@ class FileParser
      * @param string $databaseName
      * @param AbstractPlatform $platform
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws SchemaException
      */
     public function __construct(string $filePath, string $databaseName, AbstractPlatform $platform)
     {
@@ -62,32 +61,44 @@ class FileParser
     {
         $data = file_get_contents($this->filePath);
 
-        $data = preg_replace_callback(
-            '/(INDEX .*)\(((,?\s*\S+ (ASC|DESC))+)\)/',
-            function ($match) {
-                return $match[1] . '(' . str_replace('ASC', '', $match[2]) . ')';
-            },
-            $data
-        );
-        if (preg_last_error() !== PREG_NO_ERROR) {
-            throw new Exception('Failed to read sql (probably too big)');
-        }
-        $data = preg_replace_callback(
-            '/(DEFAULT)[\s]+([^\s]*)[\s]+(NULL)/i',
-            function ($match) {
-                return $match[3] . ' ' . $match[1] . ' ' . $match[2];
-            },
-            $data
-        );
+        $data = preg_replace('!/\*.*?\*/!s', '', $data);
+        $data = preg_replace('%(--.*)%','', $data);
 
-        $this->sqlParser = new Parser($data);
+        $parser = new PHPSQLParser();
+        $queries = explode(";", $data);
+        foreach ($queries as $query) {
+            $parsed = $parser->parse($query);
+            if (!$parsed || !array_key_exists('TABLE', $parsed)) {
+                continue;
+            }
+
+            $parsed['TABLE']['create-def']['fields'] = [];
+            foreach ($parsed['TABLE']['create-def']['sub_tree'] as $field) {
+                $parsed['TABLE']['create-def']['fields'][] = $this->parseItem($field);
+            }
+            $this->parsedData[] = $parsed;
+        }
+    }
+
+    private function parseItem(array $field): Item
+    {
+        $itemSet = new ItemSet();
+        if (array_key_exists('sub_tree', $field) && is_array($field['sub_tree'])) {
+            foreach ($field['sub_tree'] as $subField) {
+                if (is_array($subField)) {
+                    $itemSet->add($this->parseItem($subField));
+                }
+            }
+        }
+
+        return new Item($field, $itemSet);
     }
 
     /**
      * Convert sql parsed file to doctrine database schema
      * @param string $databaseName
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws SchemaException
      */
     private function convertToStructure(string $databaseName): void
     {
@@ -96,12 +107,12 @@ class FileParser
 
         $this->schema = new Schema([], [], $schemaConfig);
 
-        foreach ($this->sqlParser->statements as $statement) {
-            if ($statement instanceof CreateStatement && $statement->name->table !== null
-                && ($statement->name->database === null || $statement->name->database === $databaseName)) {
-                $schemaTable = $this->schema->createTable($statement->name->table);
-                foreach ($statement->fields as $field) {
-                    if ($field->key instanceof Key) {
+        foreach ($this->parsedData as $query) {
+            if (is_array($query) && array_key_exists('CREATE', $query)) {
+                $schemaTable = $this->schema->createTable($query['TABLE']['no_quotes']['parts'][1] ?? $query['TABLE']['no_quotes']['parts'][0]);
+                /** @var Item $field */
+                foreach ($query['TABLE']['create-def']['fields'] as $field) {
+                    if ($field->data['expr_type'] !== 'column-def') {
                         $this->parseIndex($field, $schemaTable);
                     } else {
                         $this->parseColumn($field, $schemaTable);
@@ -120,139 +131,124 @@ class FileParser
     }
 
     /**
-     * @param CreateDefinition $field
+     * @param Item $field
      * @param Table $schemaTable
      * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws SchemaException
      */
-    private function parseColumn(CreateDefinition $field, Table $schemaTable): void
+    private function parseColumn(Item $field, Table $schemaTable): void
     {
-        $fieldType = strtolower($field->type->name);
-        $column = $schemaTable->addColumn($field->name, $this->platform->getDoctrineTypeMapping($fieldType));
-        $column->setNotnull(false);
+        $name = $field->subTree->getItem('colref')->data['no_quotes']['parts'][0];
+        $columnTypeItem = $field->subTree->getItem('column-type');
+        $dataTypeItem = $columnTypeItem->subTree->getItem('data-type');
+        $fieldType = $dataTypeItem !== null ? $dataTypeItem->getBaseExpr() : null;
+
+        if ($fieldType === null) {
+            $baseExpr = $columnTypeItem->getBaseExpr();
+            preg_match('#^(.*?)[\( ]#', $baseExpr, $matches);
+
+            if (isset($matches[1])) {
+                $fieldType = $matches[1];
+            }
+        }
+
+        $column = $schemaTable->addColumn($name, $this->platform->getDoctrineTypeMapping($fieldType));
+        $column->setNotnull(!$columnTypeItem->data['nullable']);
         $column->setFixed(true);
         if ($column->getType() instanceof StringType) {
-            $column->setLength($field->type->parameters[0] ?? null);
+            $bracketExpressionItem = $columnTypeItem->subTree->getItem('bracket_expression');
+            $column->setLength($bracketExpressionItem ? (int)trim($bracketExpressionItem->getBaseExpr(), '()') : 0);
             if ($fieldType === 'geometry') {
                 $column->setFixed(false);
             } else {
                 $column->setFixed(stripos($fieldType, 'VAR') === false);
             }
         } else if ($column->getType() instanceof DecimalType) {
-            $column->setPrecision($field->type->parameters[0] ?? null);
-            $column->setScale($field->type->parameters[1] ?? null);
+            $bracketExpressionItem = $columnTypeItem->subTree->getItem('bracket_expression');
+            if ($bracketExpressionItem !== null) {
+                $constItems = iterator_to_array($bracketExpressionItem->subTree->getItems('const'));
+                $column->setPrecision($constItems[0]->getBaseExpr() ?? null);
+                $column->setScale($constItems[1]->getBaseExpr() ?? null);
+            }
         } else if ($column->getType() instanceof EnumType) {
-            $column->setColumnDefinition('ENUM(' . implode(', ', $field->type->parameters) . ')');
+            $column->setColumnDefinition($field->getBaseExpr());
             $column->setFixed(false);
-            $column->setCustomSchemaOption('enum', $field->type->parameters);
-        }
-
-        foreach ($field->type->options->options as $option) {
-            if (is_array($option)) {
-                switch (strtoupper($option['name'])) {
-                    case 'CHARACTER SET':
-//                    $column->setCustomSchemaOption($option['name'], $option['value']);
-                        break;
-                }
-            } else {
-                switch (strtoupper($option)) {
-                    case 'UNSIGNED':
-                        $column->setUnsigned(true);
-                        break;
+            $enumValues = [];
+            foreach ($field->subTree->getItem('column-type')->subTree as $subItem) {
+                if (strtoupper($subItem->getBaseExpr()) === 'ENUM') {
+                    foreach ($subItem->subTree->getIterator()[0]->data as $enumDefinition) {
+                        $enumValues[] = $enumDefinition['base_expr'];
+                    }
                 }
             }
+            $column->setCustomSchemaOption('enum', $enumValues);
         }
 
-        foreach ($field->options->options as $option) {
-            if (is_array($option)) {
-                switch (strtoupper($option['name'])) {
-                    case 'COMMENT':
-                        $column->setComment($option['value']);
-                        break;
-                    case 'DEFAULT':
-                        $default = $option['value'];
-                        if (strtolower($default) === 'null') {
-                            $convertedDefault = null;
-                        } else if (is_int($default)) {
-                            $convertedDefault = (int)$default;
-                        } else if (is_string($default)) {
-                            $default = str_replace('"', "", $default);
-                            $default = str_replace("'", "", $default);
-                            $convertedDefault = $default;
-                        } else {
-                            $convertedDefault = $default;
-                        }
-                        $column->setDefault($convertedDefault);
-                        break;
-                }
-            } else {
-                switch (strtoupper($option)) {
-                    case 'NOT NULL':
-                        $column->setNotnull(true);
-                        break;
-                    case 'NULL':
-                        $column->setNotnull(false);
-                        break;
-                    case 'AUTO_INCREMENT':
-                        $column->setAutoincrement(true);
-                        break;
-                    case 'UNSIGNED':
-                        $column->setUnsigned(true);
-                        break;
-                    case 'PRIMARY KEY':
-                        $schemaTable->setPrimaryKey([$column->getName()]);
-                        break;
-                }
-            }
+        $column->setUnsigned($columnTypeItem->subTree->getItem('data-type')->data['unsigned'] ?? false);
+        if ($columnTypeItem->data['primary']) {
+            $schemaTable->setPrimaryKey([$column->getName()]);
+        }
+        $column->setAutoincrement($columnTypeItem->data['auto_inc']);
+        if ($columnTypeItem->subTree->getItem('comment')) {
+            $column->setComment($columnTypeItem->subTree->getItem('comment')->getBaseExpr());
+        }
+        if ($columnTypeItem->subTree->getItem('default-value')) {
+            $column->setDefault($columnTypeItem->subTree->getItem('default-value')->getBaseExpr());
         }
     }
 
-    private function parseIndex(CreateDefinition $field, Table $schemaTable): void
+    private function parseIndex(Item $field, Table $schemaTable): void
     {
-        $columnNames = [];
-        foreach ($field->key->columns as $col) {
-            $columnNames[] = $col['name'];
+        $columnListItem = $field->subTree->getItem('column-list');
+        if ($columnListItem === null) {
+            $columnNames = [$field->subTree->getItem('colref')->getName()];
+        } else {
+            $columnNames = [];
+            foreach ($columnListItem->data['sub_tree'] as $col) {
+                $columnNames[] = $col['no_quotes']['parts'][0];
+            }
         }
 
-        switch (strtoupper($field->key->type)) {
-            case 'PRIMARY KEY':
-                $schemaTable->setPrimaryKey($columnNames);
+        switch ($field->getExprType()) {
+            case 'unique-index':
+                $constItem = $field->subTree->getItem('const');
+                $indexName = ($constItem === null ? $field->subTree->getItem('constraint')->data['sub_tree']['base_expr'] : $constItem->getBaseExpr()) ?? null;
+                $schemaTable->addUniqueIndex($columnNames, $indexName);
                 break;
-            case 'FOREIGN KEY':
-                $refColumnNames = $field->references->columns;
+            case 'spatial-index':
+                $schemaTable->addIndex($columnNames, $columnNames[0] ?? null, ['spatial'], ['lengths' => [32]]);
+                break;
+            case 'fulltext-index':
+                $schemaTable->addIndex($columnNames, $field->subTree->getItem('const')->getBaseExpr() ?? null, ['fulltext']);
+                break;
+            case 'foreign-key':
+                $foreignRefItem = $field->subTree->getItem('foreign-ref');
+                $refColumnNames = [];
+                foreach ($foreignRefItem->subTree->getItem('column-list')->subTree->getItems('index-column') as $indexItem) {
+                    $refColumnNames[] = $indexItem->getName();
+                }
+
                 $options = [];
-                foreach ($field->references->options->options as $optionContainer) {
-                    switch (strtoupper($optionContainer['name'])) {
-                        case 'ON UPDATE':
-                            $options['onUpdate'] = $optionContainer['value'];
-                            break;
-                        case 'ON DELETE':
-                            $options['onDelete'] = $optionContainer['value'];
-                            break;
-                    }
+                if (array_key_exists('on_delete', $foreignRefItem->data)) {
+                    $options['onDelete'] = $foreignRefItem->data['on_delete'];
                 }
-                $schemaTable->addForeignKeyConstraint($field->references->table->table, $columnNames, $refColumnNames, $options, $field->name);
-                break;
-            case 'INDEX':
-            case 'KEY':
-                $schemaTable->addIndex($columnNames, $field->key->name ?? null);
-                break;
-            case 'UNIQUE KEY':
-            case 'UNIQUE INDEX':
-                $schemaTable->addUniqueIndex($columnNames, $field->key->name ?? null);
-                break;
-            case 'FULLTEXT KEY':
-            case 'FULLTEXT INDEX':
-                $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['fulltext']);
-                break;
-            case 'SPATIAL KEY':
-            case 'SPATIAL INDEX':
-                $schemaTable->addIndex($columnNames, $field->key->name ?? null, ['spatial'], ['lengths' => [32]]);
-                break;
-            default:
-                if ($field->isConstraint === true && strtoupper($field->key->type) === 'UNIQUE') {
-                    $schemaTable->addUniqueIndex($columnNames, $field->name ?? null);
+                if (array_key_exists('on_update', $foreignRefItem->data)) {
+                    $options['onUpdate'] = $foreignRefItem->data['on_update'];
                 }
+
+                $name = trim($field->subTree->getItem('constraint')->data['sub_tree']['base_expr'], '`');
+                $schemaTable->addForeignKeyConstraint($foreignRefItem->subTree->getItem('table')->getName(), $columnNames, $refColumnNames, $options, $name);
+                break;
+            case 'index':
+		$constItem = $field->subTree->getItem('const');
+                if ($constItem === null) {
+                    $schemaTable->setPrimaryKey($columnNames);
+                    break;
+                }
+                $schemaTable->addIndex($columnNames, $constItem->getBaseExpr());
+                break;
+            case 'primary-key':
+                $schemaTable->setPrimaryKey($columnNames);
                 break;
         }
     }

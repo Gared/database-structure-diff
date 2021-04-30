@@ -26,11 +26,18 @@ CREATE TABLE IF NOT EXISTS `testdb`.`user` (
     ON UPDATE CASCADE
 );
 
+
+------------
+-- Test comment
+--  -- - - ----
 create table testdb.club (
   club_id INT,
   /*point POINT,*/
   rating DECIMAL(2,1) UNSIGNED NULL,
-  category VARCHAR(40) NOT NULL DEFAULT 'test'
+  category VARCHAR(40) NOT NULL DEFAULT 'test',
+  documents JSON NOT NULL,
+  size enum('s', 'm', 'l') NOT NULL,
+  PRIMARY KEY (club_id)
 );
 
 create table testdb.user_new
