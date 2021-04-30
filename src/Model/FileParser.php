@@ -175,7 +175,7 @@ class FileParser
             $column->setFixed(false);
             $enumValues = [];
             foreach ($field->subTree->getItem('column-type')->subTree as $subItem) {
-                if ($subItem->getBaseExpr() === 'ENUM') {
+                if (strtoupper($subItem->getBaseExpr()) === 'ENUM') {
                     foreach ($subItem->subTree->getIterator()[0]->data as $enumDefinition) {
                         $enumValues[] = $enumDefinition['base_expr'];
                     }
