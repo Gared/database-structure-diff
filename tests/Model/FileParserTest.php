@@ -109,6 +109,7 @@ class FileParserTest extends TestCase
         $this->assertTrue($userNewTable->hasColumn('geometry'));
         $geometryColumn = $userNewTable->getColumn('geometry');
         self::assertFalse($geometryColumn->getFixed());
+        self::assertSame(0, $geometryColumn->getLength());
 
         $this->assertTrue($userNewTable->hasIndex('unique_color'));
         $uniqueColorIndex = $userNewTable->getIndex('unique_color');

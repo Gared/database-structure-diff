@@ -157,7 +157,7 @@ class FileParser
         $column->setFixed(true);
         if ($column->getType() instanceof StringType) {
             $bracketExpressionItem = $columnTypeItem->subTree->getItem('bracket_expression');
-            $column->setLength($bracketExpressionItem ? (int)trim($bracketExpressionItem->getBaseExpr(), '()') : null);
+            $column->setLength($bracketExpressionItem ? (int)trim($bracketExpressionItem->getBaseExpr(), '()') : 0);
             if ($fieldType === 'geometry') {
                 $column->setFixed(false);
             } else {
