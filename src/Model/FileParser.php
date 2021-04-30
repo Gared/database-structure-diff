@@ -245,7 +245,7 @@ class FileParser
                     $schemaTable->setPrimaryKey($columnNames);
                     break;
                 }
-                $schemaTable->addIndex($columnNames, $constItem ? $constItem->getBaseExpr() : null);
+                $schemaTable->addIndex($columnNames, $constItem->getBaseExpr());
                 break;
             case 'primary-key':
                 $schemaTable->setPrimaryKey($columnNames);
