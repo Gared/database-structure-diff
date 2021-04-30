@@ -76,7 +76,7 @@ class FileParserTest extends TestCase
 
         $clubTable = $parser->getSchema()->getTable('testdb.club');
         $this->assertSame('club', $clubTable->getName());
-        $this->assertCount(4, $clubTable->getColumns());
+        $this->assertCount(5, $clubTable->getColumns());
 
         $primaryKey = $clubTable->getPrimaryKey();
         self::assertSame(['club_id'], $primaryKey->getColumns());
@@ -93,6 +93,9 @@ class FileParserTest extends TestCase
 
         $documentsColumn = $clubTable->getColumn('documents');
         $this->assertInstanceOf(JsonType::class, $documentsColumn->getType());
+
+        $sizeColumn = $clubTable->getColumn('size');
+        $this->assertInstanceOf(EnumType::class, $sizeColumn->getType());
 
         $userNewTable = $parser->getSchema()->getTable('testdb.user_new');
         $this->assertSame('user_new', $userNewTable->getName());
