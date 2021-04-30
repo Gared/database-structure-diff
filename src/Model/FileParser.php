@@ -241,7 +241,7 @@ class FileParser
                 break;
             case 'index':
 		$constItem = $field->subTree->getItem('const');
-		if ($constItem) {
+		if ($constItem === null) {
                     $schemaTable->setPrimaryKey($columnNames);
                     break;
 		}
