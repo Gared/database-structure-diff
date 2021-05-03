@@ -224,7 +224,7 @@ class FileParser
                 $schemaTable->addUniqueIndex($columnNames, $indexName);
                 break;
             case 'spatial-index':
-                $schemaTable->addIndex($columnNames, $columnNames[0] ?? null, ['spatial'], ['lengths' => [32]]);
+                $schemaTable->addIndex($columnNames, $columnNames[0] ?? null, ['spatial'], ['lengths' => [null]]);
                 break;
             case 'fulltext-index':
                 $schemaTable->addIndex($columnNames, $field->subTree->getItem('const')->getBaseExpr() ?? null, ['fulltext']);

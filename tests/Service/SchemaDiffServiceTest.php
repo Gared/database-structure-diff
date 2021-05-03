@@ -40,6 +40,7 @@ class SchemaDiffServiceTest extends TestCase
         $userNewTable = new Table('user_new');
         $userNewTable->addColumn('color', 'general_enum', ['customSchemaOptions' => ['enum' => ['a']]]);
         $userNewTable->addColumn('geometry', 'string', ['length' => 0]);
+        $userNewTable->addIndex(['geometry'], 'geometry', ['spatial' => true], ['length' => [32]]);
 
         $schemaManager = $this->createPartialMock(MySQLSchemaManager::class, ['getDatabasePlatform', 'createSchema']);
         $schemaManager->method('getDatabasePlatform')->willReturn($platform);
@@ -63,6 +64,7 @@ class SchemaDiffServiceTest extends TestCase
         self::assertTrue($schemaDiffService->hasDifference());
         self::assertArrayHasKey('user_new', $schemaDiff->changedTables);
         self::assertCount(1, $schemaDiff->changedTables['user_new']->changedColumns);
+        self::assertCount(0, $schemaDiff->changedTables['user_new']->changedIndexes);
         self::assertSame(['enum'], $schemaDiff->changedTables['user_new']->changedColumns['color']->changedProperties);
         self::assertNotEmpty($schemaDiffService->getSqlAlterCommands());
     }
