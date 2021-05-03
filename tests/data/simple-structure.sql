@@ -37,6 +37,7 @@ create table testdb.club (
   category VARCHAR(40) NOT NULL DEFAULT 'test',
   documents JSON NOT NULL,
   size enum('s', 'm', 'l') NOT NULL,
+  `max_extras` INT NULL DEFAULT -1 NULL,
   PRIMARY KEY (club_id)
 );
 

@@ -192,8 +192,16 @@ class FileParser
         if ($columnTypeItem->subTree->getItem('comment')) {
             $column->setComment($columnTypeItem->subTree->getItem('comment')->getBaseExpr());
         }
-        if ($columnTypeItem->subTree->getItem('default-value')) {
-            $column->setDefault($columnTypeItem->subTree->getItem('default-value')->getBaseExpr());
+        $defaultValueItem = $columnTypeItem->subTree->getItem('default-value');
+        if ($defaultValueItem) {
+            $value = $defaultValueItem->getBaseExpr();
+            if ($value === '-') {
+                // workaround to fix negative default values
+                if (preg_match('/DEFAULT[ ]+(\-\d+)/i', $columnTypeItem->getBaseExpr(), $matches)) {
+                    $value = (int)$matches[1];
+                }
+            }
+            $column->setDefault($value);
         }
     }
 
@@ -240,7 +248,7 @@ class FileParser
                 $schemaTable->addForeignKeyConstraint($foreignRefItem->subTree->getItem('table')->getName(), $columnNames, $refColumnNames, $options, $name);
                 break;
             case 'index':
-		$constItem = $field->subTree->getItem('const');
+                $constItem = $field->subTree->getItem('const');
                 if ($constItem === null) {
                     $schemaTable->setPrimaryKey($columnNames);
                     break;
