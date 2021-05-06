@@ -53,6 +53,6 @@ create table testdb.user_new
     CONSTRAINT `fk_club`
         FOREIGN KEY (`club_id`)
             REFERENCES `testdb`.`club` (`club_id`)
-            ON DELETE NO ACTION
+            ON DELETE CASCADE
             ON UPDATE CASCADE
 );

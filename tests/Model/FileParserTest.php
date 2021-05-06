@@ -119,6 +119,11 @@ class FileParserTest extends TestCase
 
         $this->assertTrue($userNewTable->hasIndex('unique_color'));
         $uniqueColorIndex = $userNewTable->getIndex('unique_color');
-        static::assertSame(['color'], $uniqueColorIndex->getColumns());
+        self::assertSame(['color'], $uniqueColorIndex->getColumns());
+
+        $clubIdForeignKey = $userNewTable->getForeignKey('fk_club');
+        self::assertNotNull($clubIdForeignKey);
+        self::assertSame('CASCADE', $clubIdForeignKey->getOption('onDelete'));
+        self::assertSame('CASCADE', $clubIdForeignKey->getOption('onUpdate'));
     }
 }

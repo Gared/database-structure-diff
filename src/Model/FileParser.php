@@ -239,9 +239,13 @@ class FileParser
                 $options = [];
                 if (array_key_exists('on_delete', $foreignRefItem->data)) {
                     $options['onDelete'] = $foreignRefItem->data['on_delete'];
+                } else if (stripos($foreignRefItem->getBaseExpr(), 'ON DELETE CASCADE') !== false) {
+                    $options['onDelete'] = 'CASCADE';
                 }
                 if (array_key_exists('on_update', $foreignRefItem->data)) {
                     $options['onUpdate'] = $foreignRefItem->data['on_update'];
+                } else if (stripos($foreignRefItem->getBaseExpr(), 'ON UPDATE CASCADE') !== false) {
+                    $options['onUpdate'] = 'CASCADE';
                 }
 
                 $name = trim($field->subTree->getItem('constraint')->data['sub_tree']['base_expr'], '`');
