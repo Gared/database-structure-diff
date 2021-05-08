@@ -38,6 +38,13 @@ jobs:
         configuration: phpunit.xml
         php_version : 7.4
         version : 9
+
+    - name: PHPUnit tests for PHP 8
+      uses: php-actions/phpunit@v2
+      with:
+        configuration: phpunit.xml
+        php_version: 8
+        version: 9
       
     - name: PHPStan
       uses: docker://oskarstark/phpstan-ga
