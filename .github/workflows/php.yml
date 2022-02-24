@@ -33,19 +33,26 @@ jobs:
     # - uses: php-actions/composer@v1 # or alternative dependency management
 
     - name: PHPUnit tests
-      uses: php-actions/phpunit@v2
+      uses: php-actions/phpunit@v3
       with:
         configuration: phpunit.xml
         php_version : 7.4
         version : 9
 
     - name: PHPUnit tests for PHP 8
-      uses: php-actions/phpunit@v2
+      uses: php-actions/phpunit@v3
       with:
         configuration: phpunit.xml
         php_version: 8
         version: 9
-      
+
+    - name: PHPUnit tests for PHP 8.1
+      uses: php-actions/phpunit@v3
+      with:
+        configuration: phpunit.xml
+        php_version: 8.1
+        version: 9
+
     - name: PHPStan
       uses: docker://oskarstark/phpstan-ga
       with:
