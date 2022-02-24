@@ -42,7 +42,7 @@ jobs:
           XDEBUG_MODE: coverage
 
       - name: Monitor coverage
-        uses: slavcodev/coverage-monitor-action@1.2.0
+        uses: slavcodev/coverage-monitor-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           clover_file: "clover.xml"
