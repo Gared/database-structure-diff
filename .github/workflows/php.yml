@@ -54,9 +54,11 @@ jobs:
         version: 9
 
     - name: PHPStan
-      uses: docker://oskarstark/phpstan-ga
+      uses: php-actions/phpstan@v3
       with:
-        args: analyse src/ --level=5
+        level: 5
+        path: src
+        php_version: 8.1
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
