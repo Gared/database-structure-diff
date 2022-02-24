@@ -27,11 +27,6 @@ class SchemaDiffService
     private $group;
 
     /**
-     * @var string|null
-     */
-    private $ignoreTable;
-
-    /**
      * @var SchemaDiff
      */
     private $schemaDiff;
@@ -39,7 +34,6 @@ class SchemaDiffService
     public function __construct(Group $group, string $ignoreTable = null)
     {
         $this->group = $group;
-        $this->ignoreTable = $ignoreTable;
 
         $platform = $this->getDatabasePlatform();
         $fromSchema = $this->getSchemaFromConnection($group->getFromConnection(), $platform);

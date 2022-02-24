@@ -227,7 +227,7 @@ class FileParser
                 $schemaTable->addIndex($columnNames, $columnNames[0] ?? null, ['spatial'], ['lengths' => [null]]);
                 break;
             case 'fulltext-index':
-                $schemaTable->addIndex($columnNames, $field->subTree->getItem('const')->getBaseExpr() ?? null, ['fulltext']);
+                $schemaTable->addIndex($columnNames, $field->subTree->getItem('const')->getBaseExpr(), ['fulltext']);
                 break;
             case 'foreign-key':
                 $foreignRefItem = $field->subTree->getItem('foreign-ref');
