@@ -26,7 +26,7 @@ class DatabaseDiffCommand extends Command
     {
         $this
             ->setName('database:calculate-diff')
-            ->setDescription('Calculates the diff between to database schemes')
+            ->setDescription('Calculates the diff between two database schemes')
             ->addArgument('config', InputArgument::REQUIRED, 'Configuration file where to load schemes from')
             ->addOption('output-file', 'o', InputOption::VALUE_OPTIONAL, 'Define output file to store migration script')
             ->addOption('format', 'f', InputOption::VALUE_OPTIONAL, 'Define format of output type', self::FORMAT_PRETTY)
